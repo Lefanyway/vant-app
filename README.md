@@ -12,4 +12,4 @@ Projeto de faculdade, sem fins comerciais.
 
 ## Aviso legal
 
-VANT não é endossado pela Riot Games e não reflete as opiniões da Riot Games nem de ninguém oficialmente envolvido na produção ou gestão das propriedades da Riot Games. Riot Games, VALORANT e todas as propriedades associadas são marcas comerciais ou marcas registradas da Riot Games, Inc. Dados de partidas fornecidos pela PandaScore.
+VANT não é endossado pela Riot Games e não reflete as opiniões da Riot Games nem de ninguém oficialmente envolvido na produção ou gestão das propriedades da Riot Games. Riot Games, VALORANT e todas as propriedades associadas são marcas comerciais ou marcas registradas da Riot Games, Inc. Dados de partidas fornecidos pela PandaScore. Fotos de jogadores: Liquipedia (CC BY-SA 3.0).

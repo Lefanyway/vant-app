@@ -5,7 +5,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
-import Animated, { Easing, useAnimatedStyle, useSharedValue, withRepeat, withTiming, ZoomIn } from "react-native-reanimated";
+import Animated, { Easing, FadeInDown, FadeOut, useAnimatedStyle, useSharedValue, withRepeat, withTiming, ZoomIn } from "react-native-reanimated";
 import { ActivityIndicator, FlatList, Image, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ResolvedLogo } from "@/components/ResolvedLogo";
@@ -52,7 +52,7 @@ export default function Onboarding() {
     await Promise.all([
       AsyncStorage.setItem(onboardingKey(userId), "1").catch(() => undefined), // shows again next time, harmless
       Object.keys(changes).length ? updateProfile(changes).catch(() => undefined) : null, // can be changed later in the profile
-      new Promise((done) => setTimeout(done, 1600)),
+      new Promise((done) => setTimeout(done, 2400)),
     ]);
     router.replace("/");
   };
@@ -151,16 +151,19 @@ function AvatarStep({ nick, avatar, onAvatar }: { nick: string; avatar: string |
 }
 
 // After the last step: the logo breathes for a moment while the home is put together.
+const buildingLines = ["Separando os jogos dos seus times", "Montando sua agenda", "Preparando seus palpites", "Tudo pronto!"];
 function Building() {
   const colors = useColors();
   const scale = useSharedValue(1);
   useEffect(() => { scale.value = withRepeat(withTiming(1.12, { duration: 700, easing: Easing.inOut(Easing.quad) }), -1, true); }, [scale]);
   const breathe = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+  const [line, setLine] = useState(0);
+  useEffect(() => { const timer = setInterval(() => setLine((value) => Math.min(value + 1, buildingLines.length - 1)), 750); return () => clearInterval(timer); }, []);
   return <View accessibilityLabel="Criando sua experiência" style={[styles.building, { backgroundColor: colors.background }]}>
-    <Animated.View style={breathe}><Image source={mark} resizeMode="contain" style={styles.buildingMark} /></Animated.View>
-    <Text style={[styles.title, { color: colors.foreground }]}>Criando sua experiência</Text>
-    <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>Separando os jogos dos seus times</Text>
-    <ActivityIndicator color={colors.primary} />
+    <Animated.View entering={FadeInDown.duration(500)}><Animated.View style={breathe}><Image source={mark} resizeMode="contain" style={styles.buildingMark} /></Animated.View></Animated.View>
+    <Animated.Text entering={FadeInDown.duration(500).delay(150)} style={[styles.title, { color: colors.foreground }]}>Criando sua experiência</Animated.Text>
+    <View style={styles.buildingLine}><Animated.Text key={line} entering={FadeInDown.duration(350)} exiting={FadeOut.duration(150)} style={[styles.subtitle, { color: colors.mutedForeground }]}>{buildingLines[line]}</Animated.Text></View>
+    <Animated.View entering={FadeInDown.duration(500).delay(300)}><ActivityIndicator color={colors.primary} /></Animated.View>
   </View>;
 }
 
@@ -246,27 +249,28 @@ const styles = StyleSheet.create({
   primaryText: { fontSize: 16, fontFamily: font.bold },
   secondary: { width: 54, height: 54, borderRadius: 27, alignItems: "center", justifyContent: "center" },
   secondaryWide: { marginTop: 20, minHeight: 50, borderRadius: 25, paddingHorizontal: 22, flexDirection: "row", alignItems: "center", gap: 10 },
-  welcome: { flex: 1, alignItems: "center", gap: 10 },
-  mark: { width: 56, height: 56, marginTop: 16 },
+  welcome: { flex: 1, alignItems: "center", justifyContent: "center", gap: 12, paddingBottom: 24 },
+  mark: { width: 72, height: 72 },
   title: { fontSize: 26, lineHeight: 32, fontFamily: font.bold, textAlign: "center" },
   subtitle: { fontSize: 15, lineHeight: 22, fontFamily: font.regular, textAlign: "center", marginBottom: 8 },
-  features: { alignSelf: "stretch", gap: 10, marginTop: 16 },
-  feature: { borderRadius: 18, padding: 14, flexDirection: "row", gap: 14, alignItems: "center" },
+  features: { alignSelf: "stretch", gap: 12, marginTop: 20 },
+  feature: { borderRadius: 20, padding: 18, flexDirection: "row", gap: 14, alignItems: "center" },
   featureIcon: { width: 42, height: 42, borderRadius: 21, alignItems: "center", justifyContent: "center" },
   featureCopy: { flex: 1, minWidth: 0, gap: 2 },
-  featureTitle: { fontSize: 15, fontFamily: font.semibold },
-  featureText: { fontSize: 13, lineHeight: 18, fontFamily: font.regular },
+  featureTitle: { fontSize: 17, fontFamily: font.semibold },
+  featureText: { fontSize: 15, lineHeight: 21, fontFamily: font.regular },
   pick: { flex: 1, gap: 8 },
   nick: { alignSelf: "stretch", height: 60, borderRadius: 20, paddingHorizontal: 18, fontSize: 20, fontFamily: font.semibold, textAlign: "center", marginTop: 16 },
   preview: { alignItems: "center", gap: 8, marginBottom: 4 },
   pencil: { position: "absolute", right: -6, bottom: -6, width: 30, height: 30, borderRadius: 15, borderWidth: 3, alignItems: "center", justifyContent: "center" },
-  term: { borderRadius: 20, padding: 16, flexDirection: "row", gap: 16, alignItems: "center" },
+  term: { borderRadius: 22, padding: 20, flexDirection: "row", gap: 16, alignItems: "center" },
   termIcon: { width: 52, height: 52, borderRadius: 26, alignItems: "center", justifyContent: "center" },
-  termTitle: { fontSize: 18, fontFamily: font.bold },
+  termTitle: { fontSize: 20, fontFamily: font.bold },
   series: { flexDirection: "row", gap: 6, marginTop: 8 },
   seriesMap: { width: 28, height: 8, borderRadius: 4 },
   building: { flex: 1, alignItems: "center", justifyContent: "center", gap: 12, paddingHorizontal: 32 },
   buildingMark: { width: 88, height: 88, marginBottom: 12 },
+  buildingLine: { height: 28, justifyContent: "center" },
   search: { height: 44, borderRadius: 22, paddingHorizontal: 14, flexDirection: "row", alignItems: "center", gap: 8, marginTop: 8 },
   input: { flex: 1, minWidth: 0, fontSize: 15, paddingVertical: 0 },
   count: { fontSize: 13, fontFamily: font.semibold, marginTop: 4 },

@@ -33,7 +33,7 @@ function RootLayoutNav() {
     <View style={{ flex: 1, width: "100%", maxWidth: 480, alignSelf: "center", overflow: "hidden" }}>
       <Stack screenOptions={{ headerShown: false, title: "VANT" }}>
         <Stack.Protected guard={signedIn} redirectTo={"/login" as Href}>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="(tabs)" options={{ headerShown: false, animation: "fade" }} />
           <Stack.Screen name="match/[id]" options={{ headerShown: false }} />
           <Stack.Screen name="teams/[id]" options={{ headerShown: false }} />
           <Stack.Screen name="competitions/[id]" options={{ headerShown: false }} />

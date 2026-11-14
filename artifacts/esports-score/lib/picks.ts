@@ -2,7 +2,6 @@ import { type ApiMatch, toMatch } from "@/lib/api";
 import type { Match } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
 
-export type PickMode = "winner" | "exact";
 export type MyPick = { matchId: string; teamId: string; homeScore: number | null; awayScore: number | null; match: Match };
 export type Graded = MyPick & { state: "open" | "hit" | "exact" | "miss"; points: number };
 export type OpenMatch = { match: Match; homeChance: number | null };
@@ -81,8 +80,11 @@ export function currentStreak(graded: Graded[]) {
   return streak;
 }
 
-// The series scores a winner can have: BO3 → 2-0 and 2-1, from the picked side.
-export function scoreOptions(format: Match["format"], homeWins: boolean): [number, number][] {
-  const need = format === "BO5" ? 3 : format === "BO1" ? 1 : 2;
-  return Array.from({ length: need }, (_, lost) => (homeWins ? [need, lost] : [lost, need]) as [number, number]);
+// Maps the winner needs: BO1 → 1, BO3 → 2, BO5 → 3.
+export const winsNeeded = (format: Match["format"]) => format === "BO5" ? 3 : format === "BO1" ? 1 : 2;
+
+// A series score is complete when exactly one side reached the maps needed.
+export function isValidScore(format: Match["format"], home: number, away: number) {
+  const need = winsNeeded(format);
+  return (home === need) !== (away === need) && home <= need && away <= need;
 }

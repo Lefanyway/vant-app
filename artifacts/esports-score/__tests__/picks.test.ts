@@ -1,5 +1,5 @@
 import type { Match } from "@/lib/data";
-import { currentStreak, grade, scoreOptions } from "@/lib/picks";
+import { currentStreak, grade, isValidScore, winsNeeded } from "@/lib/picks";
 
 jest.mock("@/lib/supabase", () => ({ supabase: {} }));
 
@@ -16,7 +16,10 @@ test("streak counts right picks back from the latest result", () => {
   expect(currentStreak(picks)).toBe(2);
 });
 
-test("score options follow the series length and the picked side", () => {
-  expect(scoreOptions("BO3", true)).toEqual([[2, 0], [2, 1]]);
-  expect(scoreOptions("BO5", false)).toEqual([[0, 3], [1, 3], [2, 3]]);
+test("a bolão score is complete when exactly one side reached the maps needed", () => {
+  expect(winsNeeded("BO5")).toBe(3);
+  expect(isValidScore("BO3", 2, 1)).toBe(true);
+  expect(isValidScore("BO3", 1, 1)).toBe(false);
+  expect(isValidScore("BO1", 0, 1)).toBe(true);
+  expect(isValidScore("BO5", 3, 3)).toBe(false);
 });

@@ -1,3 +1,4 @@
+import { buzz } from "@/components/Motion";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { createContext, ReactNode, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
@@ -82,13 +83,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
     return () => { active = false; };
   }, [userId, favoritesReady]);
-  const toggle = (setter: React.Dispatch<React.SetStateAction<string[]>>, kind: FavoriteKind, id: string) => setter((current) => {
+  const toggle = (setter: React.Dispatch<React.SetStateAction<string[]>>, kind: FavoriteKind, id: string) => { buzz(); setter((current) => {
     const saved = !current.includes(id);
     const next = saved ? [...current, id] : current.filter((item) => item !== id);
     AsyncStorage.setItem(storageKeys[kind], JSON.stringify(next)).catch(() => undefined);
     remote(kind, id, saved);
     return next;
-  });
+  }); };
   const value = useMemo(() => ({
     favoriteTeams,
     favoriteCompetitions,

@@ -1,3 +1,4 @@
+import { Pop } from "@/components/Motion";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { keepPreviousData, useInfiniteQuery } from "@tanstack/react-query";
 import { router, useLocalSearchParams } from "expo-router";
@@ -55,7 +56,7 @@ export default function AddFavorites() {
         return <Pressable accessibilityRole="button" accessibilityState={{ selected: on }} accessibilityLabel={`${on ? "Deixar de seguir" : "Seguir"} ${item.name}`} onPress={() => toggle(item.id)} style={[styles.row, { backgroundColor: colors.card }]}>
           <ResolvedLogo type={kind} entityId={item.id} name={item.name} logoUrl={item.logoUrl} size={34} />
           <View style={styles.copy}><Text numberOfLines={1} style={[styles.name, { color: colors.foreground }]}>{item.name}</Text><Text numberOfLines={1} style={[styles.meta, { color: colors.mutedForeground }]}>{item.countryName || item.season || "Valorant"}</Text></View>
-          <Ionicons name={on ? "star" : "star-outline"} size={22} color={on ? colors.primary : colors.mutedForeground} />
+          <Pop active={on} color={colors.primary}><Ionicons name={on ? "star" : "star-outline"} size={22} color={on ? colors.primary : colors.mutedForeground} /></Pop>
         </Pressable>;
       }}
     />

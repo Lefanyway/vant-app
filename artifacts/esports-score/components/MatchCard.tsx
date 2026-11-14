@@ -1,4 +1,4 @@
-import { pressed } from "@/components/Motion";
+import { pressed, RollingNumber } from "@/components/Motion";
 import { useSpoilers } from "@/context/SpoilerContext";
 import { useEffect, useRef, useState } from "react";
 import { AccessibilityInfo, Animated, Platform, Pressable, StyleSheet, Text, View } from "react-native";
@@ -94,9 +94,7 @@ function TeamLine({ team, score, emphasize, lost = false, live }: { team: Match[
           {label}
         </Text>
       </View>
-      <Text maxFontSizeMultiplier={1.2} style={[styles.score, { color: live ? colors.live : emphasize ? colors.foreground : colors.mutedForeground, fontFamily: font.bold }]}>
-        {score === undefined ? "" : score}
-      </Text>
+      <RollingNumber value={score === undefined ? "" : score} style={[styles.score, { color: live ? colors.live : emphasize ? colors.foreground : colors.mutedForeground, fontFamily: font.bold }]} />
     </View>
   );
 }

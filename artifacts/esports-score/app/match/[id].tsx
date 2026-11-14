@@ -1,9 +1,11 @@
+import { buzz, Confetti, RollingNumber } from "@/components/Motion";
+import { useApp } from "@/context/AppContext";
 import { useSpoilers } from "@/context/SpoilerContext";
 import { MatchTimeline } from "@/components/MatchTimeline";
 import { ResolvedLogo } from "@/components/ResolvedLogo";
 import { Feather } from "@expo/vector-icons";
 import { useLocalSearchParams } from "expo-router";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -47,6 +49,7 @@ export default function MatchDetail() {
 
 function DetailContent({ match, details, detailsLoading, updatedAt, detailsError, onRetry, tab, setTab, colors }: { match: Match; details: MatchDetails | null; detailsLoading: boolean; updatedAt: number; detailsError: string | null; onRetry: () => void; tab: Tab; setTab: (tab: Tab) => void; colors: ReturnType<typeof useColors> }) {
   const spoilers = useSpoilers();
+  const party = useCelebration(match, !spoilers.isHidden(match.id));
   const tabs: { key: Tab; label: string }[] = [
     { key: "Overview", label: "Detalhes" },
     ...((details?.stats?.playerStats.length ?? 0) > 0 ? [{ key: "Performance" as const, label: "Jogadores" }] : []),
@@ -54,12 +57,13 @@ function DetailContent({ match, details, detailsLoading, updatedAt, detailsError
     ...((details?.headToHead.length ?? 0) > 0 ? [{ key: "H2H" as const, label: "Confrontos" }] : []),
   ];
   return <>
+    {party ? <Confetti /> : null}
     <View style={[styles.hero, { backgroundColor: colors.card }]}>
       <View style={styles.heroActions}><ShareButton label="Compartilhar partida" message={`${match.teamA.name} vs ${match.teamB.name} · ${match.tournament} · ${match.time}`} /></View>
       <View style={styles.teams}>
         <TeamColumn team={match.teamA} colors={colors} />
         <View style={styles.scoreBlock}>
-          {hasScore(match) && spoilers.isHidden(match.id) ? <Pressable accessibilityRole="button" accessibilityLabel="Mostrar placar" onPress={() => spoilers.reveal(match.id)} style={[styles.reveal, { backgroundColor: colors.secondary }]}><Feather name="eye" size={15} color={colors.foreground} /><Text style={[styles.revealText, { color: colors.foreground }]}>Ver placar</Text></Pressable> : hasScore(match) ? <Text style={[styles.score, { color: colors.foreground }]}>{match.scoreA} – {match.scoreB}</Text> : <Text style={[styles.score, { color: colors.foreground }]}>{match.time}</Text>}
+          {hasScore(match) && spoilers.isHidden(match.id) ? <Pressable accessibilityRole="button" accessibilityLabel="Mostrar placar" onPress={() => spoilers.reveal(match.id)} style={[styles.reveal, { backgroundColor: colors.secondary }]}><Feather name="eye" size={15} color={colors.foreground} /><Text style={[styles.revealText, { color: colors.foreground }]}>Ver placar</Text></Pressable> : hasScore(match) ? <View style={styles.scoreRow}><RollingNumber value={match.scoreA ?? 0} style={[styles.score, { color: colors.foreground }]} /><Text style={[styles.score, { color: colors.foreground }]}> – </Text><RollingNumber value={match.scoreB ?? 0} style={[styles.score, { color: colors.foreground }]} /></View> : <Text style={[styles.score, { color: colors.foreground }]}>{match.time}</Text>}
           <Text style={[styles.status, { color: match.status === "Live" ? colors.destructive : colors.mutedForeground }]}>{match.status === "Live" ? "● Ao vivo" : match.status === "Finished" ? "Finalizada" : match.status === "Cancelled" ? "Cancelada" : match.status === "Postponed" ? "Adiada" : match.startTime ? new Date(match.startTime).toLocaleDateString("pt-BR", { day: "numeric", month: "short" }) : "A definir"}</Text>
           {match.format ? <Text style={[styles.format, { color: colors.mutedForeground }]}>{match.format}</Text> : null}
         </View>
@@ -107,6 +111,20 @@ function RecentMatches({ details }: { details: MatchDetails; colors: ReturnType<
   return <RecentByTeam teams={[details.match.teamA, details.match.teamB]} matchesByTeam={matchesByTeam} />;
 }
 
+// A followed team's win is celebrated once per match; a live score change gives a tap.
+const celebrated = new Set<string>();
+function useCelebration(match: Match, visible: boolean) {
+  const { favoriteTeams } = useApp();
+  const [party, setParty] = useState(false);
+  const winner = match.status === "Finished" && visible && hasScore(match) && match.scoreA !== match.scoreB ? ((match.scoreA ?? 0) > (match.scoreB ?? 0) ? match.teamA.id : match.teamB.id) : null;
+  const won = !!winner && favoriteTeams.includes(winner);
+  useEffect(() => { if (won && !celebrated.has(match.id)) { celebrated.add(match.id); buzz(true); setParty(true); } }, [won, match.id]);
+  const score = `${match.scoreA}-${match.scoreB}`;
+  const last = useRef(score);
+  useEffect(() => { if (last.current !== score && match.status === "Live") buzz(true); last.current = score; }, [score, match.status]);
+  return party;
+}
+
 function TeamColumn({ team, colors }: { team: Match["teamA"]; colors: ReturnType<typeof useColors> }) { return <TeamLink team={team} fill><View style={styles.teamColumn}><TeamBadge {...team} size={62} /><Text numberOfLines={2} style={[styles.teamName, { color: colors.foreground }]}>{team.name}</Text></View></TeamLink>; }
 function SectionTitle({ title, colors }: { title: string; colors: ReturnType<typeof useColors> }) { return <Text style={[styles.sectionTitle, { color: colors.mutedForeground }]}>{title}</Text>; }
 function InfoRow({ label, value, colors, last = false }: { label: string; value: string; colors: ReturnType<typeof useColors>; last?: boolean }) { return <View style={[styles.infoRow, last && styles.infoRowLast, { borderBottomColor: colors.border }]}><Text style={[styles.infoLabel, { color: colors.mutedForeground }]}>{label}</Text><Text style={[styles.infoValue, { color: colors.foreground }]}>{value}</Text></View>; }
@@ -120,5 +138,5 @@ const styles = StyleSheet.create({
  reveal: { marginTop: 6, minHeight: 36, borderRadius: 18, paddingHorizontal: 14, flexDirection: "row", alignItems: "center", gap: 6 }, revealText: { fontSize: 13, fontWeight: "700" },
  hero: { marginHorizontal: -8, paddingHorizontal: 20, paddingBottom: 22 }, heroActions: { flexDirection: "row", justifyContent: "flex-end", gap: 6 }, heroIcon: { width: 44, height: 44, justifyContent: "center", alignItems: "center" }, competitionRow: { borderRadius: 16, flexDirection: "row", alignItems: "center", gap: 12, padding: 16, marginTop: 10 }, competitionCopy: { flex: 1, fontSize: 13, lineHeight: 20 },
   screen: { flex: 1, paddingHorizontal: 8 }, nav: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }, navTitle: { fontSize: 14, fontWeight: "600" },
-  competition: { fontSize: 18, fontWeight: "800", textAlign: "center", letterSpacing: -0.3 }, series: { fontSize: 12, textAlign: "center", marginTop: 5 }, teams: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginTop: 10, gap: 8 }, teamColumn: { alignItems: "center", flex: 1, minWidth: 0, gap: 9 }, teamName: { fontSize: 14, fontWeight: "700", textAlign: "center" }, scoreBlock: { alignItems: "center", minWidth: 88, flexShrink: 0 }, status: { fontSize: 11, fontWeight: "800", letterSpacing: 1 }, score: { fontSize: 26, fontWeight: "700", fontVariant: ["tabular-nums"], marginTop: 4 }, format: { fontSize: 11, fontWeight: "700", marginTop: 4 }, updated: { fontSize: 11, textAlign: "center", marginTop: 14 }, date: { fontSize: 12, textAlign: "center", marginTop: 18 }, tabs: { flexDirection: "row", marginTop: 0 }, tab: { paddingVertical: 12, paddingHorizontal: 18, borderBottomWidth: 2, borderBottomColor: "transparent" }, tabText: { fontSize: 14, fontWeight: "600" }, compactNote: { fontSize: 13, lineHeight: 18, marginBottom: 8 }, sectionTitle: { fontSize: 15, fontWeight: "600", marginTop: 24, marginBottom: 9 }, panel: { borderWidth: 0, borderRadius: 22, paddingHorizontal: 18, paddingVertical: 6 }, infoRow: { minHeight: 44, borderBottomWidth: 1, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }, infoRowLast: { borderBottomWidth: 0 }, infoLabel: { fontSize: 12 }, infoValue: { fontSize: 12, fontWeight: "700", maxWidth: "60%", textAlign: "right" }, playerRow: { minHeight: 62, borderBottomWidth: 1, flexDirection: "row", alignItems: "center", gap: 10 }, playerIdentity: { flex: 1 }, playerName: { fontSize: 12, fontWeight: "700" }, playerAgent: { fontSize: 10, marginTop: 3 }, stat: { width: 42, alignItems: "flex-end" }, statLabel: { fontSize: 8, fontWeight: "800" }, statValue: { fontSize: 11, fontWeight: "800", marginTop: 3 }, unavailable: { borderWidth: 0, borderRadius: 22, padding: 15 }, unavailableTitle: { fontSize: 12, fontWeight: "800" }, unavailableText: { fontSize: 12, lineHeight: 18, marginTop: 5 }, message: { fontSize: 14, textAlign: "center", marginTop: 40 }, errorBox: { alignItems: "center" }, retry: { fontSize: 13, fontWeight: "600", marginTop: 10 }, skeleton: { height: 145, borderRadius: 22, marginTop: 12 }, skeletonWide: { height: 52, borderRadius: 18, marginTop: 12 },
+  competition: { fontSize: 18, fontWeight: "800", textAlign: "center", letterSpacing: -0.3 }, series: { fontSize: 12, textAlign: "center", marginTop: 5 }, teams: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginTop: 10, gap: 8 }, teamColumn: { alignItems: "center", flex: 1, minWidth: 0, gap: 9 }, teamName: { fontSize: 14, fontWeight: "700", textAlign: "center" }, scoreBlock: { alignItems: "center", minWidth: 88, flexShrink: 0 }, scoreRow: { flexDirection: "row", alignItems: "center" }, status: { fontSize: 11, fontWeight: "800", letterSpacing: 1 }, score: { fontSize: 26, fontWeight: "700", fontVariant: ["tabular-nums"], marginTop: 4 }, format: { fontSize: 11, fontWeight: "700", marginTop: 4 }, updated: { fontSize: 11, textAlign: "center", marginTop: 14 }, date: { fontSize: 12, textAlign: "center", marginTop: 18 }, tabs: { flexDirection: "row", marginTop: 0 }, tab: { paddingVertical: 12, paddingHorizontal: 18, borderBottomWidth: 2, borderBottomColor: "transparent" }, tabText: { fontSize: 14, fontWeight: "600" }, compactNote: { fontSize: 13, lineHeight: 18, marginBottom: 8 }, sectionTitle: { fontSize: 15, fontWeight: "600", marginTop: 24, marginBottom: 9 }, panel: { borderWidth: 0, borderRadius: 22, paddingHorizontal: 18, paddingVertical: 6 }, infoRow: { minHeight: 44, borderBottomWidth: 1, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }, infoRowLast: { borderBottomWidth: 0 }, infoLabel: { fontSize: 12 }, infoValue: { fontSize: 12, fontWeight: "700", maxWidth: "60%", textAlign: "right" }, playerRow: { minHeight: 62, borderBottomWidth: 1, flexDirection: "row", alignItems: "center", gap: 10 }, playerIdentity: { flex: 1 }, playerName: { fontSize: 12, fontWeight: "700" }, playerAgent: { fontSize: 10, marginTop: 3 }, stat: { width: 42, alignItems: "flex-end" }, statLabel: { fontSize: 8, fontWeight: "800" }, statValue: { fontSize: 11, fontWeight: "800", marginTop: 3 }, unavailable: { borderWidth: 0, borderRadius: 22, padding: 15 }, unavailableTitle: { fontSize: 12, fontWeight: "800" }, unavailableText: { fontSize: 12, lineHeight: 18, marginTop: 5 }, message: { fontSize: 14, textAlign: "center", marginTop: 40 }, errorBox: { alignItems: "center" }, retry: { fontSize: 13, fontWeight: "600", marginTop: 10 }, skeleton: { height: 145, borderRadius: 22, marginTop: 12 }, skeletonWide: { height: 52, borderRadius: 18, marginTop: 12 },
 });

@@ -23,5 +23,6 @@ jest.mock("@/context/NotificationsContext", () => ({
 jest.mock("react-native-keyboard-controller", () => require("react-native-keyboard-controller/jest"));
 
 // Swipe tabs render as plain views in tests; gestures and slide animations need the native runtime.
-jest.mock("react-native-reanimated", () => { const { View } = require("react-native"); const slide = { duration: () => slide }; return { __esModule: true, default: { View }, SlideInLeft: slide, SlideInRight: slide, FadeInDown: { duration: () => ({ delay: () => slide }) } }; });
+jest.mock("react-native-reanimated", () => { const { View } = require("react-native"); const slide = { duration: () => slide }; const { Text } = require("react-native"); const value = (v) => v; return { __esModule: true, default: { View, Text }, SlideInLeft: slide, SlideInRight: slide, SlideInDown: slide, FadeInDown: { duration: () => ({ delay: () => slide }) }, useSharedValue: (v) => ({ value: v }), useAnimatedStyle: () => ({}), withTiming: value, withSpring: value, withDelay: (_, v) => v, withSequence: (...v) => v[v.length - 1] }; });
+jest.mock("expo-haptics", () => ({ impactAsync: async () => undefined, ImpactFeedbackStyle: { Light: "light", Medium: "medium" } }));
 jest.mock("react-native-gesture-handler", () => ({ GestureDetector: ({ children }) => children, usePanGesture: () => ({}), GestureHandlerRootView: ({ children }) => children }));

@@ -1,3 +1,4 @@
+import { Pop } from "@/components/Motion";
 import { Image } from "expo-image";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
 import { Flag } from "@/components/Flag";
@@ -66,7 +67,7 @@ function TeamHeader({ team, colors }: { team: NonNullable<Awaited<ReturnType<typ
   return <View style={[styles.header, { backgroundColor: colors.card, borderColor: colors.border }]}>
     <View style={styles.identity}><ResolvedLogo type="team" name={team.name} entityId={team.id} game={team.gameId} logoUrl={team.logoUrl} size={86} /><View style={styles.copy}><Text style={[styles.teamName, { color: colors.foreground }]}>{team.name}</Text>{team.acronym ? <Text style={[styles.acronym, { color: colors.mutedForeground }]}>{team.acronym}</Text> : null}<View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>{team.country ? <View style={{ marginTop: 6 }}><Flag code={team.country} width={24} /></View> : null}</View></View></View>
     <View style={{ flexDirection: "row", gap: 8 }}>
-      <Pressable accessibilityRole="button" onPress={() => toggleFavorite(team.id)} style={[styles.follow, { borderColor: followed ? colors.primary : colors.border, backgroundColor: followed ? colors.accent : colors.secondary }]}><Feather name={followed ? "check" : "plus"} size={14} color={followed ? colors.primary : colors.foreground} /><Text style={[styles.followText, { color: followed ? colors.primary : colors.foreground }]}>{followed ? "Seguindo" : "Seguir"}</Text></Pressable>
+      <Pressable accessibilityRole="button" onPress={() => toggleFavorite(team.id)} style={[styles.follow, { borderColor: followed ? colors.primary : colors.border, backgroundColor: followed ? colors.accent : colors.secondary }]}><Pop active={followed} color={colors.primary}><Feather name={followed ? "check" : "plus"} size={14} color={followed ? colors.primary : colors.foreground} /></Pop><Text style={[styles.followText, { color: followed ? colors.primary : colors.foreground }]}>{followed ? "Seguindo" : "Seguir"}</Text></Pressable>
       {/* Puts the team's next matches in the phone calendar, with a reminder 15 minutes before each. */}
       <Pressable accessibilityRole="button" accessibilityLabel={`Adicionar os próximos jogos de ${team.name} à agenda`} onPress={() => void Linking.openURL(teamCalendarUrl(team.id, Platform.OS === "ios"))} style={[styles.follow, { borderColor: colors.border, backgroundColor: colors.secondary }]}><Feather name="calendar" size={14} color={colors.foreground} /><Text style={[styles.followText, { color: colors.foreground }]}>Agenda</Text></Pressable>
     </View>

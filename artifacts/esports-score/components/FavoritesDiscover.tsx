@@ -1,3 +1,4 @@
+import { Pop } from "@/components/Motion";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
 import { router } from "expo-router";
@@ -52,7 +53,7 @@ function Section({ title, rows, loading, saved, toggle, open, type }: { title: s
           <ResolvedLogo type={type} entityId={row.id} name={row.name} logoUrl={row.logoUrl} size={32} />
           <View style={styles.copy}><Text numberOfLines={1} style={[styles.name, { color: colors.foreground }]}>{row.name}</Text><Text numberOfLines={1} style={[styles.meta, { color: colors.mutedForeground }]}>{row.meta}</Text></View>
         </Pressable>
-        <Pressable accessibilityRole="button" accessibilityLabel={on ? `Deixar de seguir ${row.name}` : `Seguir ${row.name}`} onPress={() => toggle(row.id)} style={styles.star}><Ionicons name={on ? "star" : "star-outline"} size={22} color={on ? colors.primary : colors.mutedForeground} /></Pressable>
+        <Pressable accessibilityRole="button" accessibilityLabel={on ? `Deixar de seguir ${row.name}` : `Seguir ${row.name}`} onPress={() => toggle(row.id)} style={styles.star}><Pop active={on} color={colors.primary}><Ionicons name={on ? "star" : "star-outline"} size={22} color={on ? colors.primary : colors.mutedForeground} /></Pop></Pressable>
       </View>;
     })}
     {!loading && rows.length > 5 ? <Pressable accessibilityRole="button" onPress={() => setExpanded((value) => !value)} style={styles.more}><Text style={[styles.moreText, { color: colors.primary }]}>{expanded ? "Ver menos" : "Veja mais"}</Text><Feather name={expanded ? "chevron-up" : "chevron-down"} size={16} color={colors.primary} /></Pressable> : null}

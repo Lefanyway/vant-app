@@ -5,7 +5,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
-import Animated, { Easing, FadeInDown, FadeOut, useAnimatedStyle, useSharedValue, withRepeat, withTiming, ZoomIn } from "react-native-reanimated";
+import Animated, { Easing, FadeInDown, FadeOut, useAnimatedStyle, useSharedValue, withRepeat, withTiming } from "react-native-reanimated";
 import { ActivityIndicator, FlatList, Image, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ResolvedLogo } from "@/components/ResolvedLogo";
@@ -135,12 +135,12 @@ function Name({ nick, onNick, avatar, onDone }: { nick: string; onNick: (value: 
   </View>;
 }
 
-// then the picture: the chosen one pops in big on top, the options below in rows by theme.
+// then the picture: the chosen one big on top, the options below in rows by theme.
 function AvatarStep({ nick, avatar, onAvatar }: { nick: string; avatar: string | null; onAvatar: (id: string) => void }) {
   const colors = useColors();
   return <View style={styles.pick}>
     <View style={styles.preview}>
-      <Animated.View key={avatar ?? "none"} entering={ZoomIn.springify().damping(14)}><Avatar id={avatar} name={nick || "?"} size={88} /></Animated.View>
+      <Avatar id={avatar} name={nick || "?"} size={88} />
       <Text numberOfLines={1} style={[styles.choiceName, { color: colors.foreground }]}>{nick.split("#")[0]!.trim() || "Você"}</Text>
     </View>
     <Text style={[styles.title, { color: colors.foreground }]}>Escolha seu avatar</Text>

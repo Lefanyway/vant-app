@@ -1,10 +1,12 @@
-import { pressed } from "@/components/Motion";
+import { Appear, pressed } from "@/components/Motion";
+import { AvatarPicker } from "@/components/Avatar";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
-import { FlatList, Image, Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import Animated, { Easing, useAnimatedStyle, useSharedValue, withRepeat, withTiming } from "react-native-reanimated";
+import { ActivityIndicator, FlatList, Image, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ResolvedLogo } from "@/components/ResolvedLogo";
 import { font } from "@/constants/type";
@@ -27,26 +29,42 @@ const intro = [
 export default function Onboarding() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const userId = useAuth().session?.user.id;
+  const { session, profile, updateProfile } = useAuth();
+  const userId = session?.user.id;
   const [step, setStep] = useState(0);
+  const [nick, setNick] = useState(profile?.display_name ?? "");
+  const [avatar, setAvatar] = useState<string | null>(profile?.avatar ?? null);
+  const [building, setBuilding] = useState(false);
+  // The profile can arrive after the screen opens: fill in what the fan already has.
+  useEffect(() => { if (profile) { setNick((current) => current || profile.display_name || ""); setAvatar((current) => current ?? profile.avatar ?? null); } }, [profile]);
   // Both lists load while the welcome step is read, so the pick steps open already filled.
   const client = useQueryClient();
   useEffect(() => {
     void client.prefetchQuery({ queryKey: ["popular", "team"], queryFn: popularTeams, staleTime: 60 * 60_000 });
     void client.prefetchQuery({ queryKey: ["popular", "competition"], queryFn: popularCompetitions, staleTime: 60 * 60_000 });
   }, [client]);
+  // Saves the nickname and avatar, then a short "building" screen before the home.
   const finish = async () => {
-    try { await AsyncStorage.setItem(onboardingKey(userId), "1"); } catch { /* shows again next time, harmless */ }
+    setBuilding(true);
+    const name = nick.trim().slice(0, 60);
+    const changes = { ...(name && name !== profile?.display_name ? { display_name: name } : {}), ...(avatar !== (profile?.avatar ?? null) ? { avatar } : {}) };
+    await Promise.all([
+      AsyncStorage.setItem(onboardingKey(userId), "1").catch(() => undefined), // shows again next time, harmless
+      Object.keys(changes).length ? updateProfile(changes).catch(() => undefined) : null, // can be changed later in the profile
+      new Promise((done) => setTimeout(done, 1600)),
+    ]);
     router.replace("/");
   };
   const steps = [
     <Welcome key="welcome" />,
+    <Name key="name" nick={nick} onNick={setNick} avatar={avatar} onAvatar={setAvatar} />,
     <Glossary key="glossary" />,
     <Pick key="teams" kind="team" title="Quais times você torce?" subtitle="Escolha quantos quiser. Você recebe aviso quando eles jogam." />,
     <Pick key="competitions" kind="competition" title="E quais campeonatos?" subtitle="Os jogos deles aparecem nos seus Favoritos." />,
     <Alerts key="alerts" />,
   ];
   const last = step === steps.length - 1;
+  if (building) return <Building />;
   return <View style={[styles.screen, { backgroundColor: colors.background, paddingTop: insets.top + 12, paddingBottom: Math.max(insets.bottom, 16) + 8 }]}>
     <View style={styles.top}>
       <View style={styles.dots}>{steps.map((_, index) => <View key={index} style={[styles.dot, { width: index === step ? 22 : 8, backgroundColor: index <= step ? colors.primary : colors.secondary }]} />)}</View>
@@ -77,24 +95,54 @@ function Welcome() {
   </View>;
 }
 
-// The words the app uses, in one line each, for someone who has never followed Valorant.
-const terms = [
-  { term: "Mapa", text: "Cada partida é jogada em um cenário, como Bind ou Ascent. Vence o mapa quem chega a 13 rounds primeiro." },
-  { term: "BO1, BO3, BO5", text: "Quantos mapas a série pode ter. Num BO3, ganha quem vencer 2 mapas; num BO5, quem vencer 3." },
-  { term: "VCT", text: "O circuito oficial da Riot, com as ligas das Américas, Europa, Pacífico e China ao longo do ano." },
-  { term: "Masters e Champions", text: "Os torneios mundiais do VCT. O Champions, no fim do ano, decide o melhor time do mundo." },
-  { term: "Challengers", text: "As ligas de acesso: os melhores times sobem para o VCT." },
-  { term: "Game Changers", text: "O circuito para mulheres e pessoas de gênero diverso, com torneio mundial próprio." },
-];
-
+// Three ideas are enough to follow any match: a picture and one line each.
 function Glossary() {
   const colors = useColors();
+  const series = <View style={styles.series}>{[true, true, false].map((won, index) => <View key={index} style={[styles.seriesMap, { backgroundColor: won ? colors.primary : colors.secondary }]} />)}</View>;
+  const terms = [
+    { icon: "map" as const, title: "Mapa", text: "Cada jogo é em um mapa. Ganha quem fizer 13 rounds." },
+    { icon: "layers" as const, title: "BO3", text: "Melhor de 3 mapas: quem vencer 2 leva.", extra: series },
+    { icon: "award" as const, title: "VCT", text: "O campeonato oficial da Riot, o mais importante do ano." },
+  ];
+  return <View style={styles.welcome}>
+    <Text style={[styles.title, { color: colors.foreground }]}>Valorant em 3 palavras</Text>
+    <View style={styles.features}>
+      {terms.map((item, index) => <Appear key={item.title} index={index}><View style={[styles.term, { backgroundColor: colors.card }]}>
+        <View style={[styles.termIcon, { backgroundColor: colors.accent }]}><Feather name={item.icon} size={24} color={colors.primary} /></View>
+        <View style={styles.featureCopy}>
+          <Text style={[styles.termTitle, { color: colors.foreground }]}>{item.title}</Text>
+          <Text style={[styles.featureText, { color: colors.mutedForeground }]}>{item.text}</Text>
+          {item.extra}
+        </View>
+      </View></Appear>)}
+    </View>
+  </View>;
+}
+
+// The nickname and picture other fans will see.
+function Name({ nick, onNick, avatar, onAvatar }: { nick: string; onNick: (value: string) => void; avatar: string | null; onAvatar: (id: string) => void }) {
+  const colors = useColors();
   return <View style={styles.pick}>
-    <Text style={[styles.title, { color: colors.foreground }]}>Novo no Valorant?</Text>
-    <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>Seis palavras para entender qualquer partida no app.</Text>
-    <FlatList data={terms} keyExtractor={(item) => item.term} showsVerticalScrollIndicator={false} style={styles.list} contentContainerStyle={{ gap: 8, paddingBottom: 20 }} renderItem={({ item }) => <View style={[styles.feature, { backgroundColor: colors.card }]}>
-      <View style={styles.featureCopy}><Text style={[styles.featureTitle, { color: colors.foreground }]}>{item.term}</Text><Text style={[styles.featureText, { color: colors.mutedForeground }]}>{item.text}</Text></View>
-    </View>} />
+    <Text style={[styles.title, { color: colors.foreground }]}>Como você quer se chamar?</Text>
+    <TextInput value={nick} onChangeText={onNick} placeholder="Seu apelido" placeholderTextColor={colors.mutedForeground} maxLength={30} autoCorrect={false} accessibilityLabel="Apelido" style={[styles.nick, { backgroundColor: colors.card, color: colors.foreground }, Platform.OS === "web" ? ({ outlineStyle: "none" } as object) : null]} />
+    <Text style={[styles.count, { color: colors.mutedForeground }]}>Escolha seu avatar</Text>
+    <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} style={styles.list} contentContainerStyle={{ paddingBottom: 20 }}>
+      <AvatarPicker value={avatar} onChange={onAvatar} name={nick} />
+    </ScrollView>
+  </View>;
+}
+
+// After the last step: the logo breathes for a moment while the home is put together.
+function Building() {
+  const colors = useColors();
+  const scale = useSharedValue(1);
+  useEffect(() => { scale.value = withRepeat(withTiming(1.12, { duration: 700, easing: Easing.inOut(Easing.quad) }), -1, true); }, [scale]);
+  const breathe = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+  return <View accessibilityLabel="Criando sua experiência" style={[styles.building, { backgroundColor: colors.background }]}>
+    <Animated.View style={breathe}><Image source={mark} resizeMode="contain" style={styles.buildingMark} /></Animated.View>
+    <Text style={[styles.title, { color: colors.foreground }]}>Criando sua experiência</Text>
+    <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>Separando os jogos dos seus times</Text>
+    <ActivityIndicator color={colors.primary} />
   </View>;
 }
 
@@ -191,6 +239,14 @@ const styles = StyleSheet.create({
   featureTitle: { fontSize: 15, fontFamily: font.semibold },
   featureText: { fontSize: 13, lineHeight: 18, fontFamily: font.regular },
   pick: { flex: 1, gap: 8 },
+  nick: { height: 54, borderRadius: 18, paddingHorizontal: 18, fontSize: 17, fontFamily: font.semibold, marginTop: 8 },
+  term: { borderRadius: 20, padding: 16, flexDirection: "row", gap: 16, alignItems: "center" },
+  termIcon: { width: 52, height: 52, borderRadius: 26, alignItems: "center", justifyContent: "center" },
+  termTitle: { fontSize: 18, fontFamily: font.bold },
+  series: { flexDirection: "row", gap: 6, marginTop: 8 },
+  seriesMap: { width: 28, height: 8, borderRadius: 4 },
+  building: { flex: 1, alignItems: "center", justifyContent: "center", gap: 12, paddingHorizontal: 32 },
+  buildingMark: { width: 88, height: 88, marginBottom: 12 },
   search: { height: 44, borderRadius: 22, paddingHorizontal: 14, flexDirection: "row", alignItems: "center", gap: 8, marginTop: 8 },
   input: { flex: 1, minWidth: 0, fontSize: 15, paddingVertical: 0 },
   count: { fontSize: 13, fontFamily: font.semibold, marginTop: 4 },

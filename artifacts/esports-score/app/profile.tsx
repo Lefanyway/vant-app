@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Pressable, StyleSheet, Text, View, Switch } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AuthField, FormMessage, PrimaryButton } from "@/components/AuthScreen";
+import { Avatar, AvatarPicker } from "@/components/Avatar";
 import { BackButton } from "@/components/BackButton";
 import { FollowingSettings } from "@/components/FollowingSettings";
 import { KeyboardAwareScrollViewCompat } from "@/components/KeyboardAwareScrollViewCompat";
@@ -14,8 +15,6 @@ import { router } from "expo-router";
 import { useColors } from "@/hooks/useColors";
 import { authErrorMessage } from "@/lib/supabase";
 
-const initials = (name: string) => name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]!.toUpperCase()).join("") || "?";
-
 export default function Profile() {
   const spoilers = useSpoilers();
   const colors = useColors();
@@ -25,6 +24,7 @@ export default function Profile() {
   const name = profile?.display_name?.trim() || email.split("@")[0] || "Seu perfil";
   const [editing, setEditing] = useState<"name" | "password" | null>(null);
   const [draft, setDraft] = useState("");
+  const [avatar, setAvatar] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ text: string; tone: "error" | "info" } | null>(null);
 
@@ -37,16 +37,16 @@ export default function Profile() {
     finally { setSimulating(false); }
   };
 
-  const open = (mode: "name" | "password") => { setEditing(mode); setDraft(mode === "name" ? name : ""); setMessage(null); };
+  const open = (mode: "name" | "password") => { setEditing(mode); setDraft(mode === "name" ? name : ""); setAvatar(profile?.avatar ?? null); setMessage(null); };
   const save = async () => {
     if (busy) return;
     if (editing === "password" && draft.length < 6) return setMessage({ text: "Use uma senha com pelo menos 6 caracteres.", tone: "error" });
     if (editing === "name" && !draft.trim()) return setMessage({ text: "Digite seu nome.", tone: "error" });
     setBusy(true);
     try {
-      if (editing === "name") await updateProfile({ display_name: draft.trim().slice(0, 60) });
+      if (editing === "name") await updateProfile({ display_name: draft.trim().slice(0, 60), avatar });
       else await updatePassword(draft);
-      setMessage({ text: editing === "name" ? "Nome atualizado." : "Senha alterada.", tone: "info" });
+      setMessage({ text: editing === "name" ? "Perfil atualizado." : "Senha alterada.", tone: "info" });
       setEditing(null);
     } catch (failure) { setMessage({ text: authErrorMessage(failure), tone: "error" }); }
     finally { setBusy(false); }
@@ -59,7 +59,7 @@ export default function Profile() {
     <KeyboardAwareScrollViewCompat style={{ flex: 1 }} bottomOffset={24} contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 40 }]}>
 
       <View style={styles.identity}>
-        <View style={[styles.avatar, { backgroundColor: colors.accent }]}><Text style={[styles.avatarText, { color: colors.primary }]}>{initials(name)}</Text></View>
+        <Pressable accessibilityRole="button" accessibilityLabel="Trocar avatar" onPress={() => open("name")}><Avatar id={editing === "name" ? avatar : profile?.avatar} name={name} /></Pressable>
         <Text style={[styles.name, { color: colors.foreground }]}>{name}</Text>
         <Text style={[styles.email, { color: colors.mutedForeground }]}>{email}</Text>
         {editing !== "name" ? <Pressable accessibilityRole="button" onPress={() => open("name")} style={[styles.chip, { backgroundColor: colors.secondary }]}><Text style={[styles.chipText, { color: colors.foreground }]}>Editar perfil</Text></Pressable> : null}
@@ -67,7 +67,8 @@ export default function Profile() {
 
       {editing === "name" ? <View style={styles.form}>
         <AuthField accessibilityLabel="Nome" placeholder="Nome" value={draft} onChangeText={setDraft} autoCapitalize="words" maxLength={60} autoFocus onSubmitEditing={() => void save()} />
-        <PrimaryButton label="Salvar nome" onPress={() => void save()} busy={busy} />
+        <AvatarPicker value={avatar} onChange={setAvatar} name={draft || name} />
+        <PrimaryButton label="Salvar perfil" onPress={() => void save()} busy={busy} />
         <Pressable accessibilityRole="button" onPress={() => setEditing(null)} style={styles.cancel}><Text style={[styles.chipText, { color: colors.mutedForeground }]}>Cancelar</Text></Pressable>
       </View> : null}
 
@@ -122,8 +123,6 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: 20 },
   nav: { flexDirection: "row", alignItems: "center" },
   identity: { alignItems: "center", marginTop: 16 },
-  avatar: { width: 84, height: 84, borderRadius: 42, alignItems: "center", justifyContent: "center" },
-  avatarText: { fontSize: 28, fontFamily: font.bold },
   name: { fontSize: 22, fontFamily: font.bold, letterSpacing: -0.4, marginTop: 16, textAlign: "center" },
   email: { fontSize: 14, fontFamily: font.regular, marginTop: 4 },
   chip: { minHeight: 40, borderRadius: 20, paddingHorizontal: 18, justifyContent: "center", marginTop: 16 },

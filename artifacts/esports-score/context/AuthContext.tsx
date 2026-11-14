@@ -2,7 +2,7 @@ import type { Session } from "@supabase/supabase-js";
 import React, { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
-export type Profile = { id: string; display_name: string | null; notify_saved_results: boolean };
+export type Profile = { id: string; display_name: string | null; avatar?: string | null; notify_saved_results: boolean };
 
 type AuthContextValue = {
   session: Session | null;
@@ -11,7 +11,7 @@ type AuthContextValue = {
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (name: string, email: string, password: string) => Promise<{ needsConfirmation: boolean }>;
   signOut: () => Promise<void>;
-  updateProfile: (changes: Partial<Pick<Profile, "display_name" | "notify_saved_results">>) => Promise<void>;
+  updateProfile: (changes: Partial<Pick<Profile, "display_name" | "avatar" | "notify_saved_results">>) => Promise<void>;
   updatePassword: (password: string) => Promise<void>;
 };
 
@@ -32,7 +32,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!userId) { setProfile(null); return; }
     let active = true;
-    supabase.from("profiles").select("id, display_name, notify_saved_results").eq("id", userId).maybeSingle()
+    supabase.from("profiles").select("id, display_name, avatar, notify_saved_results").eq("id", userId).maybeSingle()
       .then(({ data }) => { if (active) setProfile(data ?? { id: userId, display_name: null, notify_saved_results: true }); });
     return () => { active = false; };
   }, [userId]);
@@ -51,7 +51,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = useCallback(async () => { await supabase.auth.signOut(); }, []);
 
-  const updateProfile = useCallback(async (changes: Partial<Pick<Profile, "display_name" | "notify_saved_results">>) => {
+  const updateProfile = useCallback(async (changes: Partial<Pick<Profile, "display_name" | "avatar" | "notify_saved_results">>) => {
     if (!userId) return;
     const previous = profile;
     setProfile((current) => current ? { ...current, ...changes } : current);

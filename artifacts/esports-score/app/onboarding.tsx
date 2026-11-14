@@ -1,6 +1,6 @@
 import { Feather, Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { FlatList, Image, Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
@@ -12,7 +12,7 @@ import { useAuth } from "@/context/AuthContext";
 import { ensurePermission } from "@/context/NotificationsContext";
 import { useColors } from "@/hooks/useColors";
 import { fetchCatalogPage, type ApiSearchResult } from "@/lib/api";
-import { onboardingKey } from "@/lib/onboarding";
+import { onboardingKey, popularCompetitions, popularTeams } from "@/lib/onboarding";
 
 const mark = require("../assets/generated/games/valorant-mark.png");
 
@@ -28,6 +28,12 @@ export default function Onboarding() {
   const insets = useSafeAreaInsets();
   const userId = useAuth().session?.user.id;
   const [step, setStep] = useState(0);
+  // Both lists load while the welcome step is read, so the pick steps open already filled.
+  const client = useQueryClient();
+  useEffect(() => {
+    void client.prefetchQuery({ queryKey: ["popular", "team"], queryFn: popularTeams, staleTime: 60 * 60_000 });
+    void client.prefetchQuery({ queryKey: ["popular", "competition"], queryFn: popularCompetitions, staleTime: 60 * 60_000 });
+  }, [client]);
   const finish = async () => {
     try { await AsyncStorage.setItem(onboardingKey(userId), "1"); } catch { /* shows again next time, harmless */ }
     router.replace("/");
@@ -75,9 +81,11 @@ function Pick({ kind, title, subtitle }: { kind: "team" | "competition"; title: 
   const [query, setQuery] = useState("");
   const [debounced, setDebounced] = useState("");
   useEffect(() => { const timer = setTimeout(() => setDebounced(query.trim()), 300); return () => clearTimeout(timer); }, [query]);
-  // With nothing typed the catalog lists who is playing now; Brazilian teams come first for this audience.
-  const list = useQuery({ queryKey: ["catalog", kind, debounced, 1], queryFn: () => fetchCatalogPage(kind, 1, debounced), staleTime: 10 * 60_000, placeholderData: keepPreviousData });
-  const rows = [...(list.data?.items ?? [])].sort((a, b) => Number(b.country === "BR") - Number(a.country === "BR"));
+  // Nothing typed: the best-known first (Elo for teams, the big events for competitions).
+  // Typed: the search forgives typos ("laud" finds LOUD) and ranks the closest, then the strongest.
+  const popular = useQuery({ queryKey: ["popular", kind], queryFn: kind === "team" ? popularTeams : popularCompetitions, staleTime: 60 * 60_000 });
+  const search = useQuery({ queryKey: ["catalog", kind, debounced, 1], queryFn: () => fetchCatalogPage(kind, 1, debounced), enabled: debounced.length >= 2, staleTime: 10 * 60_000, placeholderData: keepPreviousData });
+  const rows = debounced.length >= 2 ? search.data?.items ?? [] : popular.data ?? [];
   const saved = kind === "team" ? favoriteTeams : favoriteCompetitions;
   const toggle = kind === "team" ? toggleFavorite : toggleCompetition;
   return <View style={styles.pick}>
@@ -88,7 +96,7 @@ function Pick({ kind, title, subtitle }: { kind: "team" | "competition"; title: 
       <TextInput value={query} onChangeText={setQuery} placeholder={kind === "team" ? "Procurar um time" : "Procurar um campeonato"} placeholderTextColor={colors.mutedForeground} autoCorrect={false} style={[styles.input, { color: colors.foreground }, Platform.OS === "web" ? ({ outlineStyle: "none" } as object) : null]} />
     </View>
     {saved.length ? <Text style={[styles.count, { color: colors.primary }]}>{saved.length} {kind === "team" ? (saved.length > 1 ? "times escolhidos" : "time escolhido") : (saved.length > 1 ? "campeonatos escolhidos" : "campeonato escolhido")}</Text> : null}
-    <FlatList data={rows} keyExtractor={(row) => row.id} keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 12 }} renderItem={({ item }) => <Choice item={item} kind={kind} on={saved.includes(item.id)} onPress={() => toggle(item.id)} />} />
+    <FlatList data={rows} keyExtractor={(row) => row.id} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} style={styles.list} contentContainerStyle={{ paddingBottom: 20 }} renderItem={({ item }) => <Choice item={item} kind={kind} on={saved.includes(item.id)} onPress={() => toggle(item.id)} />} />
   </View>;
 }
 
@@ -101,6 +109,25 @@ function Choice({ item, kind, on, onPress }: { item: ApiSearchResult; kind: "tea
   </Pressable>;
 }
 
+// What an alert looks like, with two Brazilian favourites, so the step shows instead of only telling.
+function ExampleNotification() {
+  const colors = useColors();
+  const side = (name: string, score: number, lost: boolean) => <View style={styles.exTeam}>
+    <ResolvedLogo type="team" name={name} size={26} />
+    <Text style={[styles.exName, { color: lost ? colors.mutedForeground : colors.foreground, fontFamily: lost ? font.medium : font.semibold }]}>{name}</Text>
+    <Text style={[styles.exScore, { color: lost ? colors.mutedForeground : colors.foreground }]}>{score}</Text>
+  </View>;
+  return <View accessibilityLabel="Exemplo de aviso: fim de jogo, LOUD 2 a 1 FURIA" style={[styles.example, { backgroundColor: colors.card, borderColor: colors.border }]}>
+    <View style={styles.exHead}>
+      <View style={[styles.exIcon, { backgroundColor: colors.primary }]}><Feather name="bell" size={11} color={colors.primaryForeground} /></View>
+      <Text style={[styles.exApp, { color: colors.mutedForeground }]}>VANT · agora</Text>
+    </View>
+    <Text style={[styles.exEvent, { color: colors.foreground }]}>Fim de jogo · VCT Americas</Text>
+    {side("LOUD", 2, false)}
+    {side("FURIA", 1, true)}
+  </View>;
+}
+
 function Alerts() {
   const colors = useColors();
   const [state, setState] = useState<"idle" | "on" | "off">("idle");
@@ -108,6 +135,7 @@ function Alerts() {
     <View style={[styles.bell, { backgroundColor: colors.accent }]}><Feather name="bell" size={34} color={colors.primary} /></View>
     <Text style={[styles.title, { color: colors.foreground }]}>Não perca nenhum jogo</Text>
     <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>Avisamos quando uma partida dos seus times começa e quando termina, com o placar. Você escolhe quais times avisam no seu perfil.</Text>
+    <ExampleNotification />
     {Platform.OS === "web" ? <Text style={[styles.featureText, { color: colors.mutedForeground, textAlign: "center" }]}>No navegador, os avisos aparecem dentro do app, no sininho.</Text>
       : <Pressable accessibilityRole="button" onPress={async () => setState(await ensurePermission() ? "on" : "off")} style={[styles.secondaryWide, { backgroundColor: colors.card }]}>
         <Feather name={state === "on" ? "check" : "bell"} size={18} color={state === "on" ? colors.positive : colors.foreground} />
@@ -123,7 +151,8 @@ const styles = StyleSheet.create({
   dot: { height: 8, borderRadius: 4 },
   skip: { fontSize: 15, fontFamily: font.semibold },
   body: { flex: 1, paddingTop: 20 },
-  footer: { flexDirection: "row", gap: 10 },
+  footer: { flexDirection: "row", gap: 10, paddingTop: 14 },
+  list: { flex: 1 },
   primary: { flex: 1, height: 54, borderRadius: 27, alignItems: "center", justifyContent: "center" },
   primaryText: { fontSize: 16, fontFamily: font.bold },
   secondary: { width: 54, height: 54, borderRadius: 27, alignItems: "center", justifyContent: "center" },
@@ -144,5 +173,13 @@ const styles = StyleSheet.create({
   count: { fontSize: 13, fontFamily: font.semibold, marginTop: 4 },
   choice: { minHeight: 60, borderRadius: 16, borderWidth: 1.5, paddingHorizontal: 12, marginBottom: 8, flexDirection: "row", alignItems: "center", gap: 12 },
   choiceName: { fontSize: 15, fontFamily: font.semibold },
-  bell: { width: 84, height: 84, borderRadius: 42, alignItems: "center", justifyContent: "center", marginTop: 40, marginBottom: 8 },
+  example: { alignSelf: "stretch", borderRadius: 20, borderWidth: 1, padding: 14, gap: 8, marginTop: 8 },
+  exHead: { flexDirection: "row", alignItems: "center", gap: 6 },
+  exIcon: { width: 18, height: 18, borderRadius: 5, alignItems: "center", justifyContent: "center" },
+  exApp: { fontSize: 12, fontFamily: font.medium },
+  exEvent: { fontSize: 14, fontFamily: font.bold, marginBottom: 2 },
+  exTeam: { flexDirection: "row", alignItems: "center", gap: 10 },
+  exName: { flex: 1, fontSize: 15 },
+  exScore: { fontSize: 17, fontFamily: font.bold },
+  bell: { width: 84, height: 84, borderRadius: 42, alignItems: "center", justifyContent: "center", marginTop: 12, marginBottom: 4 },
 });

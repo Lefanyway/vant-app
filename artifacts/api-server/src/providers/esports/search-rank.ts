@@ -21,8 +21,24 @@ export function countryName(code?: string): string | undefined {
   try { return regionNames.of(code.toUpperCase()); } catch { return undefined; }
 }
 
+// Letters to change to turn one word into the other; two swapped neighbours count once ("fuira" → "furia" is 1).
+function distance(a: string, b: string): number {
+  let before: number[] = [];
+  let row = Array.from({ length: b.length + 1 }, (_, index) => index);
+  for (let i = 1; i <= a.length; i++) {
+    const next = [i];
+    for (let j = 1; j <= b.length; j++) {
+      next[j] = Math.min(row[j] + 1, next[j - 1] + 1, row[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+      if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) next[j] = Math.min(next[j], before[j - 2] + 1);
+    }
+    before = row;
+    row = next;
+  }
+  return row[b.length];
+}
+
 // 0 exact name or acronym, 1 name starts with the query, 2 a word (or the season) starts with it,
-// 3 it appears anywhere, 4 matched upstream only (slug).
+// 3 it appears anywhere, then 4 + how many letters off the closest word is (typos: "fuira" → FURIA is 6).
 function score(item: SearchResult, query: string): number {
   const name = normalize(item.name);
   const acronym = item.acronym ? normalize(item.acronym) : "";
@@ -32,7 +48,7 @@ function score(item: SearchResult, query: string): number {
   const words = `${name} ${acronym} ${season}`.split(" ").filter(Boolean);
   if (words.some((word) => word.startsWith(query)) || season.startsWith(query)) return 2;
   if (name.includes(query) || season.includes(query)) return 3;
-  return 4;
+  return 4 + Math.min(...words.map((word) => distance(word, query)), 9);
 }
 
 // Academy, women's and youth rosters ("FURIA Academy", "LOUD Female", "MIBR GC", acronym "FUR.A").

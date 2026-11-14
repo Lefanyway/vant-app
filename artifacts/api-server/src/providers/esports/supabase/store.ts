@@ -55,19 +55,16 @@ export class SupabaseStore {
     // PostgREST filter syntax uses these characters; a name search never needs them.
     const q = encodeURIComponent(query.replace(/[,()*%:"\\]/g, ' ').trim());
     if (!q) return { items: [], popularity: new Map() };
-    const [teams, competitions] = await Promise.all([
-      type === 'competition' ? [] : this.rest<{ id: string; name: string; acronym: string | null; logo_url: string | null; country: string | null }[]>(`teams?select=id,name,acronym,logo_url,country&or=(name.ilike.*${q}*,acronym.ilike.${q}*)&limit=80`),
-      type === 'team' ? [] : this.rest<{ id: string; name: string; logo_url: string | null; region: string | null }[]>(`competitions?select=id,name,logo_url,region&name=ilike.*${q}*&limit=40`),
-    ]);
-    const ids = teams.map(row => encodeURIComponent(row.id));
-    const elo = ids.length ? await this.rest<{ team_id: string; elo: number }[]>(`team_elo?select=team_id,elo&team_id=in.(${ids.join(',')})`).catch(() => []) : [];
+    // One call: substring, typo (edit distance) and sound-alike matches, each team with its Elo. See search_catalog in the migrations.
+    type Row = { kind: 'team' | 'competition'; id: string; name: string; acronym: string | null; logo_url: string | null; country: string | null; elo: number | null };
+    const rows = (await this.rest<Row[]>('rpc/search_catalog', { method: 'POST', body: JSON.stringify({ q: decodeURIComponent(q), max_rows: 40 }) }))
+      .filter(row => type === 'all' || row.kind === type);
     const logo = (url: string | null) => url ? `/api/esports/assets/logo?url=${encodeURIComponent(url)}` : undefined;
     return {
-      items: [
-        ...teams.map((row): SearchResult => ({ type: 'team', id: row.id, name: row.name.trim(), gameId: 'valorant', logoUrl: logo(row.logo_url), acronym: row.acronym || undefined, country: row.country || undefined, countryName: countryName(row.country || undefined) })),
-        ...competitions.map((row): SearchResult => ({ type: 'competition', id: row.id, name: row.name.trim(), gameId: 'valorant', logoUrl: logo(row.logo_url) })),
-      ],
-      popularity: new Map(elo.map(row => [row.team_id, row.elo])),
+      items: rows.map((row): SearchResult => row.kind === 'team'
+        ? { type: 'team', id: row.id, name: row.name.trim(), gameId: 'valorant', logoUrl: logo(row.logo_url), acronym: row.acronym || undefined, country: row.country || undefined, countryName: countryName(row.country || undefined) }
+        : { type: 'competition', id: row.id, name: row.name.trim(), gameId: 'valorant', logoUrl: logo(row.logo_url) }),
+      popularity: new Map(rows.flatMap(row => row.elo === null ? [] : [[row.id, row.elo] as const])),
     };
   }
 

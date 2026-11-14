@@ -66,7 +66,7 @@ export function withSupabaseStore(provider: EsportsDataProvider, services: { sto
     const q = query.trim();
     if (q.length >= 2 && page === 1) {
       const stored = await store.searchCatalog(type, q).catch(() => null);
-      if (stored && stored.items.length >= 3) return { items: rankResults(stored.items, q, 30, stored.popularity), hasMore: false };
+      if (stored && stored.items.length >= 1) return { items: rankResults(stored.items, q, 30, stored.popularity), hasMore: false };
     }
     if (!fromProviderCatalog) return { items: [], hasMore: false };
     return fromProviderCatalog(type, page, query);

@@ -43,3 +43,8 @@ test("the main roster comes before its academy or women's team", () => {
   const ranked = rankResults([team("FURIA Academy", "FUR.A"), team("FURIA Esports", "FUR")], "furia", 30, new Map([["FURIA Academy", 1542], ["FURIA Esports", 1481]]));
   assert.deepEqual(ranked.map((item) => item.name), ["FURIA Esports", "FURIA Academy"]);
 });
+
+test("a typo still ranks the closest name first", () => {
+  const ranked = rankResults([team("Fire Flux Esports"), team("FURIA Esports", "FUR")], "fuira", 30, new Map([["Fire Flux Esports", 1700], ["FURIA Esports", 1480]]));
+  assert.equal(ranked[0].name, "FURIA Esports");
+});

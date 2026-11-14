@@ -40,6 +40,7 @@ export default function Onboarding() {
   };
   const steps = [
     <Welcome key="welcome" />,
+    <Glossary key="glossary" />,
     <Pick key="teams" kind="team" title="Quais times você torce?" subtitle="Escolha quantos quiser. Você recebe aviso quando eles jogam." />,
     <Pick key="competitions" kind="competition" title="E quais campeonatos?" subtitle="Os jogos deles aparecem nos seus Favoritos." />,
     <Alerts key="alerts" />,
@@ -72,6 +73,27 @@ function Welcome() {
         <View style={styles.featureCopy}><Text style={[styles.featureTitle, { color: colors.foreground }]}>{item.title}</Text><Text style={[styles.featureText, { color: colors.mutedForeground }]}>{item.text}</Text></View>
       </View>)}
     </View>
+  </View>;
+}
+
+// The words the app uses, in one line each, for someone who has never followed Valorant.
+const terms = [
+  { term: "Mapa", text: "Cada partida é jogada em um cenário, como Bind ou Ascent. Vence o mapa quem chega a 13 rounds primeiro." },
+  { term: "BO1, BO3, BO5", text: "Quantos mapas a série pode ter. Num BO3, ganha quem vencer 2 mapas; num BO5, quem vencer 3." },
+  { term: "VCT", text: "O circuito oficial da Riot, com as ligas das Américas, Europa, Pacífico e China ao longo do ano." },
+  { term: "Masters e Champions", text: "Os torneios mundiais do VCT. O Champions, no fim do ano, decide o melhor time do mundo." },
+  { term: "Challengers", text: "As ligas de acesso: os melhores times sobem para o VCT." },
+  { term: "Game Changers", text: "O circuito para mulheres e pessoas de gênero diverso, com torneio mundial próprio." },
+];
+
+function Glossary() {
+  const colors = useColors();
+  return <View style={styles.pick}>
+    <Text style={[styles.title, { color: colors.foreground }]}>Novo no Valorant?</Text>
+    <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>Seis palavras para entender qualquer partida no app.</Text>
+    <FlatList data={terms} keyExtractor={(item) => item.term} showsVerticalScrollIndicator={false} style={styles.list} contentContainerStyle={{ gap: 8, paddingBottom: 20 }} renderItem={({ item }) => <View style={[styles.feature, { backgroundColor: colors.card }]}>
+      <View style={styles.featureCopy}><Text style={[styles.featureTitle, { color: colors.foreground }]}>{item.term}</Text><Text style={[styles.featureText, { color: colors.mutedForeground }]}>{item.text}</Text></View>
+    </View>} />
   </View>;
 }
 

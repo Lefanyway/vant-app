@@ -1,6 +1,7 @@
+import { useSpoilers } from "@/context/SpoilerContext";
 import { Feather } from "@expo/vector-icons";
 import { useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View, Switch } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AuthField, FormMessage, PrimaryButton } from "@/components/AuthScreen";
 import { BackButton } from "@/components/BackButton";
@@ -16,6 +17,7 @@ import { authErrorMessage } from "@/lib/supabase";
 const initials = (name: string) => name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]!.toUpperCase()).join("") || "?";
 
 export default function Profile() {
+  const spoilers = useSpoilers();
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { session, profile, updateProfile, updatePassword, signOut } = useAuth();
@@ -85,6 +87,10 @@ export default function Profile() {
         <Pressable accessibilityRole="button" disabled={simulating} onPress={() => void runSimulation()} style={[styles.row, styles.divider, { borderTopColor: colors.border }]}>
           <Text style={[styles.rowLabel, { color: colors.primary }]}>{simulating ? "Enviando…" : "Simular notificação"}</Text>
           <Feather name="bell" size={18} color={colors.primary} />
+        </Pressable>
+        <Pressable accessibilityRole="switch" accessibilityState={{ checked: spoilers.hideScores }} onPress={() => spoilers.setHideScores(!spoilers.hideScores)} style={[styles.row, styles.divider, { borderTopColor: colors.border }]}>
+          <View style={{ flex: 1 }}><Text style={[styles.rowLabel, { color: colors.foreground }]}>Sem spoiler</Text><Text style={{ fontSize: 12, color: colors.mutedForeground, marginTop: 2 }}>Esconde os placares até você tocar em "Ver placar"</Text></View>
+          <Switch value={spoilers.hideScores} onValueChange={spoilers.setHideScores} trackColor={{ true: colors.primary }} />
         </Pressable>
         <Pressable accessibilityRole="button" onPress={() => router.push("/onboarding")} style={[styles.row, styles.divider, { borderTopColor: colors.border }]}>
           <Text style={[styles.rowLabel, { color: colors.foreground }]}>Ver introdução</Text>

@@ -20,6 +20,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { AppProvider } from '@/context/AppContext';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { NotificationsProvider } from '@/context/NotificationsContext';
+import { SpoilerProvider } from '@/context/SpoilerContext';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -71,7 +72,7 @@ export default function RootLayout() {
         <PersistQueryClientProvider client={queryClient} persistOptions={persistOptions}>
           <GestureHandlerRootView>
             <KeyboardProvider>
-              <AuthProvider><NotificationsProvider><AppProvider><StatusBar style="light" /><RootLayoutNav /></AppProvider></NotificationsProvider></AuthProvider>
+              <AuthProvider><NotificationsProvider><AppProvider><SpoilerProvider><StatusBar style="light" /><RootLayoutNav /></SpoilerProvider></AppProvider></NotificationsProvider></AuthProvider>
             </KeyboardProvider>
           </GestureHandlerRootView>
         </PersistQueryClientProvider>

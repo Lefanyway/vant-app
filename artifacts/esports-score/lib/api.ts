@@ -112,6 +112,8 @@ export async function fetchMatchDetails(id: string, signal?: AbortSignal) {
   };
 }
 
+// Map names and rounds for the timeline, fetched apart from the match so it opens at once.
+export async function fetchMatchMaps(id: string) { return (await request<{ games: MatchGame[] }>(`/matches/${encodeURIComponent(id)}/maps`)).games; }
 export async function fetchMatchStats(id: string, signal?: AbortSignal) {
   try { return await request<ApiStatsResult>(`/matches/${encodeURIComponent(id)}/stats`, signal); }
   catch { return null; }

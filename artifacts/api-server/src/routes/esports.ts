@@ -93,7 +93,18 @@ router.get("/matches/recent", async (req, res, next) => {
 });
 router.get("/matches/live",async (req, res, next) => { if (outsidePhase(req.query.game)) return res.json([]); const selected = providerRequired(res); if (!selected) return; try { return res.json(await cached(`live:${req.query.game ?? "valorant"}`, ESPORTS_CACHE_TTL.live, () => selected.getLiveMatches(game(req.query.game) ?? "valorant"))); } catch (error) { return next(error); } });
 router.get("/matches/upcoming", async (req, res, next) => { if (outsidePhase(req.query.game)) return res.json([]); const selected = providerRequired(res); if (!selected) return; try { return res.json(await cached(`upcoming:${req.query.game ?? "valorant"}`, ESPORTS_CACHE_TTL.matchesFuture, () => selected.getUpcomingMatches(game(req.query.game) ?? "valorant"))); } catch (error) { return next(error); } });
-router.get("/matches/:id/details", async (req, res, next) => { const selected = providerRequired(res); if (!selected) return; try { if (!selected.getMatchDetails) return res.status(404).json({ error: "Match details unavailable" }); const details = await cached(`match-details-v3:${req.params.id}`, ESPORTS_CACHE_TTL.matchDetail, async () => { const found = await selected.getMatchDetails!(req.params.id); return found ? { ...found, match: await withMapNames(found.match) } : found; }); if (!details) return res.status(404).json({ error: "Match not found" }); return res.json(details); } catch (error) { return next(error); } });
+router.get("/matches/:id/details", async (req, res, next) => { const selected = providerRequired(res); if (!selected) return; try { if (!selected.getMatchDetails) return res.status(404).json({ error: "Match details unavailable" }); const details = await cached(`match-details-v4:${req.params.id}`, ESPORTS_CACHE_TTL.matchDetail, () => selected.getMatchDetails!(req.params.id)); if (!details) return res.status(404).json({ error: "Match not found" }); return res.json(details); } catch (error) { return next(error); } });
+// Map names and round scores (VLR.gg) on their own, so the match screen never waits for them.
+router.get("/matches/:id/maps", async (req, res, next) => {
+  const selected = providerRequired(res); if (!selected) return;
+  try {
+    const games = await cached(`match-maps:${req.params.id}`, ESPORTS_CACHE_TTL.matchDetail, async () => {
+      const details = await cached(`match-details-v4:${req.params.id}`, ESPORTS_CACHE_TTL.matchDetail, () => selected.getMatchDetails!(req.params.id));
+      return details ? (await withMapNames(details.match)).games ?? [] : [];
+    });
+    return res.json({ games });
+  } catch (error) { return next(error); }
+});
 router.get("/matches/:id/stats", async (req, res, next) => {
   const selected = providerRequired(res); if (!selected) return;
   const unavailable = { stats: null, capabilities: { deepStats: false, maps: false, playerStats: false, economy: false, veto: false, headToHead: false, recentMatches: false }, error: "VLR enrichment unavailable" as const };

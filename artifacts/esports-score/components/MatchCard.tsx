@@ -1,3 +1,4 @@
+import { useSpoilers } from "@/context/SpoilerContext";
 import { useEffect, useRef, useState } from "react";
 import { AccessibilityInfo, Animated, Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { logoSlot, ResolvedLogo } from "@/components/ResolvedLogo";
@@ -43,7 +44,8 @@ export function TeamBadge({ name, game, logoUrl, id, size = logoSlot.list.size }
 export function MatchCard({ match, onPress, showDay = false }: { match: Match; onPress: () => void; showDay?: boolean }) {
   const colors = useColors();
   const live = match.status === "Live";
-  const scored = hasScore(match);
+  // With "sem spoiler" on, finished and live scores wait until the match is opened and revealed.
+  const scored = hasScore(match) && !useSpoilers().isHidden(match.id);
   const format = formatLabel(match.format);
   const status = live ? "Ao vivo" : match.status === "Upcoming" ? match.time : statusText(match.status);
   return (

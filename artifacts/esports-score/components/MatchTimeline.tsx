@@ -10,7 +10,8 @@ import { listTeamLabel } from "@/lib/matches";
 export function MatchTimeline({ match }: { match: Match }) {
   const colors = useColors();
   const games = match.games ?? [];
-  if (!games.length) return null;
+  // Before the series starts there is no map data yet: the timeline still lays out its maps, all to be played.
+  if (!games.length && !match.format) return null;
   const total = match.format ? Number(match.format.slice(2)) : games.length;
   const slots = Array.from({ length: Math.max(total, games.length) }, (_, index) => games.find((game) => game.number === index + 1) ?? { number: index + 1, status: "scheduled" as const });
   const running = { [match.teamA.id]: 0, [match.teamB.id]: 0 };

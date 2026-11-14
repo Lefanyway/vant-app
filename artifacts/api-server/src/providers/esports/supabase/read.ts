@@ -51,6 +51,11 @@ export function withSupabaseStore(provider: EsportsDataProvider, services: { sto
   const fromProviderDetails = provider.getMatchDetails?.bind(provider);
   const getMatchDetails = async (matchId: string) => {
     const details = await store.matchDetails(matchId).catch(() => null);
+    // Matches stored before map data was kept get it from the provider once (the response is cached by the route).
+    if (details && details.match.status === 'finished' && !details.match.games?.length) {
+      const fresh = await provider.getMatch(matchId).catch(() => null);
+      if (fresh?.games?.length) return { ...details, match: { ...details.match, games: fresh.games } };
+    }
     if (details && details.match.status !== 'live') return details;
     if (details) return { ...details, match: (await provider.getMatch(matchId).catch(() => null)) ?? details.match };
     return fromProviderDetails ? fromProviderDetails(matchId) : details;

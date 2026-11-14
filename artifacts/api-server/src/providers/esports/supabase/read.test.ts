@@ -80,7 +80,7 @@ test("returns the provider untouched when Supabase is not configured", () => {
 });
 
 test("opens a finished match from Supabase and takes only the live score from the provider", async () => {
-  const details = (status: Match["status"]) => ({ match: stored("m", status, "2026-10-05T12:00:00Z"), maps: [], playerStats: [], economy: null, veto: null, headToHead: [], recentMatches: [], capabilities: {} });
+  const details = (status: Match["status"]) => ({ match: { ...stored("m", status, "2026-10-05T12:00:00Z"), games: [{ number: 1, status: "finished" as const }] }, maps: [], playerStats: [], economy: null, veto: null, headToHead: [], recentMatches: [], capabilities: {} });
   let status: Match["status"] = "finished";
   const store = { matchDetails: async () => details(status) } as unknown as SupabaseStore;
   let scoreCalls = 0, detailCalls = 0;
@@ -91,4 +91,12 @@ test("opens a finished match from Supabase and takes only the live score from th
   status = "live";
   assert.equal((await reader.getMatchDetails!("m"))!.match.homeScore, 1);
   assert.deepEqual([scoreCalls, detailCalls], [1, 0]);
+});
+
+test("fills in map data the provider has for a finished match stored without it", async () => {
+  const store = { matchDetails: async () => ({ match: stored("m", "finished", "2026-10-05T12:00:00Z"), maps: [], playerStats: [], economy: null, veto: null, headToHead: [], recentMatches: [], capabilities: {} }) } as unknown as SupabaseStore;
+  const games = [{ number: 1, status: "finished" as const, winnerId: "pandascore:1" }];
+  const source = { getMatches: async () => [], getMatch: async () => ({ ...stored("m", "finished", "2026-10-05T12:00:00Z"), games }) } as unknown as EsportsDataProvider;
+  const reader = withSupabaseStore(source, { store, sync: null });
+  assert.deepEqual((await reader.getMatchDetails!("m"))!.match.games, games);
 });

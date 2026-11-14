@@ -204,7 +204,7 @@ router.get("/teams/:id/news", async (req, res, next) => {
   if (!selected.getTeamNews) return res.json({ articles: [], available: false, error: "Team news unavailable" });
   const limit = Math.min(20, Math.max(1, Number(req.query.limit) || 5));
   try {
-    const articles = await cached(`team-news-v2:${req.params.id}:${limit}`, ESPORTS_CACHE_TTL.teamNews, () => selected.getTeamNews!(req.params.id, limit));
+    const articles = await cached(`team-news-v3:${req.params.id}:${limit}`, ESPORTS_CACHE_TTL.teamNews, () => selected.getTeamNews!(req.params.id, limit));
     return res.json({ articles, available: articles.length > 0 });
   } catch (error) { return res.json({ articles: [], available: false, error: "Team news unavailable" }); }
 });

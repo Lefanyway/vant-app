@@ -1,7 +1,7 @@
-import { pressed, RollingNumber } from "@/components/Motion";
+import { RollingNumber, Tap } from "@/components/Motion";
 import { useSpoilers } from "@/context/SpoilerContext";
 import { useEffect, useRef, useState } from "react";
-import { AccessibilityInfo, Animated, Platform, Pressable, StyleSheet, Text, View } from "react-native";
+import { AccessibilityInfo, Animated, Platform, StyleSheet, Text, View } from "react-native";
 import { logoSlot, ResolvedLogo } from "@/components/ResolvedLogo";
 import { font } from "@/constants/type";
 import { useColors } from "@/hooks/useColors";
@@ -51,12 +51,12 @@ export function MatchCard({ match, onPress, showDay = false }: { match: Match; o
   const status = live ? "Ao vivo" : match.status === "Upcoming" ? match.time : statusText(match.status);
   return (
     <View style={[styles.row, { borderTopColor: colors.border }]}>
-      <Pressable
+      <Tap
         testID={`match-${match.id}`}
         accessibilityRole="button"
         accessibilityLabel={`${match.teamA.name} contra ${match.teamB.name}, ${status}`}
         onPress={onPress}
-        style={pressed(styles.main)}
+        style={styles.main}
       >
         <View style={styles.timeColumn}>
           {live ? <LiveDot /> : null}
@@ -67,7 +67,7 @@ export function MatchCard({ match, onPress, showDay = false }: { match: Match; o
           <TeamLine team={match.teamA} score={scored ? match.scoreA : undefined} emphasize={scored && (match.scoreA ?? 0) > (match.scoreB ?? 0)} lost={scored && !live && (match.scoreA ?? 0) < (match.scoreB ?? 0)} live={live} />
           <TeamLine team={match.teamB} score={scored && match.scoreB !== undefined ? match.scoreB : undefined} emphasize={scored && (match.scoreB ?? 0) > (match.scoreA ?? 0)} lost={scored && !live && (match.scoreB ?? 0) < (match.scoreA ?? 0)} live={live} />
         </View>
-      </Pressable>
+      </Tap>
       <View style={styles.metaColumn}>
         {format ? <Text maxFontSizeMultiplier={1.2} style={[styles.format, { color: colors.mutedForeground }]}>{format}</Text> : null}
       </View>

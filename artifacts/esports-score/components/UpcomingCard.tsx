@@ -1,5 +1,5 @@
-import { Appear, pressed } from "@/components/Motion";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Appear, Tap } from "@/components/Motion";
+import { StyleSheet, Text, View } from "react-native";
 import { ResolvedLogo } from "@/components/ResolvedLogo";
 import { useColors } from "@/hooks/useColors";
 import type { Match } from "@/lib/data";
@@ -13,7 +13,7 @@ export function UpcomingCard({ match }: { match: Match }) {
   const colors = useColors();
   const start = match.startTime ? new Date(match.scheduledTime ?? match.startTime) : null;
   const live = match.status === "Live";
-  return <Appear><Pressable accessibilityRole="button" accessibilityLabel={`${match.teamA.name} contra ${match.teamB.name}, ${start ? start.toLocaleString("pt-BR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "data a definir"}`} onPress={() => openMatch(match.id, match)} style={pressed([styles.card, { backgroundColor: colors.card, borderColor: colors.border }])}>
+  return <Appear><Tap accessibilityRole="button" accessibilityLabel={`${match.teamA.name} contra ${match.teamB.name}, ${start ? start.toLocaleString("pt-BR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "data a definir"}`} onPress={() => openMatch(match.id, match)} style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
     <Text numberOfLines={1} style={[styles.competition, { color: colors.mutedForeground }]}>{match.stage && !match.tournament.includes(match.stage) ? `${match.tournament} · ${match.stage}` : match.tournament}</Text>
     <View style={styles.body}>
       <View style={styles.when}>
@@ -27,7 +27,7 @@ export function UpcomingCard({ match }: { match: Match }) {
       <View style={[styles.divider, { backgroundColor: colors.border }]} />
       <View style={[styles.status, { backgroundColor: live ? `${colors.live}26` : colors.secondary }]}><Text style={[styles.statusText, { color: live ? colors.live : colors.mutedForeground }]}>{statusLabel(match)}</Text></View>
     </View>
-  </Pressable></Appear>;
+  </Tap></Appear>;
 }
 
 function Side({ team }: { team: Match["teamA"] }) {

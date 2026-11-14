@@ -1,6 +1,6 @@
 import * as Haptics from "expo-haptics";
 import { type ReactNode, useEffect, useRef } from "react";
-import { Dimensions, Platform, StyleSheet, View, type PressableStateCallbackType, type StyleProp, type TextStyle, type ViewStyle } from "react-native";
+import { Dimensions, Platform, Pressable, StyleSheet, View, type PressableProps, type PressableStateCallbackType, type StyleProp, type TextStyle, type ViewStyle } from "react-native";
 import Animated, { FadeInDown, SlideInDown, useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming } from "react-native-reanimated";
 
 // The app's small motions, kept quick so they feel alive without getting in the way:
@@ -12,6 +12,15 @@ export function Appear({ index = 0, children, style }: { index?: number; childre
 // anything tappable shrinks slightly under the finger,
 export const pressed = (base?: StyleProp<ViewStyle>) => ({ pressed: down }: PressableStateCallbackType): StyleProp<ViewStyle> =>
   [base, down ? { transform: [{ scale: 0.97 }], opacity: 0.88 } : null];
+
+// big tappable cards sink softly and spring back instead of snapping,
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+const soft = { damping: 14, stiffness: 260, mass: 0.6 };
+export function Tap({ style, children, ...props }: Omit<PressableProps, "style"> & { style?: StyleProp<ViewStyle> }) {
+  const scale = useSharedValue(1);
+  const anim = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+  return <AnimatedPressable {...props} onPressIn={(event) => { scale.value = withSpring(0.95, soft); props.onPressIn?.(event); }} onPressOut={(event) => { scale.value = withSpring(1, soft); props.onPressOut?.(event); }} style={[style, anim]}>{children}</AnimatedPressable>;
+}
 
 // the phone gives a light tap only at the moments that matter (follow, a live map ends, a win),
 export function buzz(strong = false) {
@@ -53,6 +62,16 @@ export function RollingNumber({ value, style }: { value: number | string; style?
   return <View style={styles.roll}><Animated.Text key={String(value)} entering={mounted.current ? SlideInDown.duration(280) : undefined} style={style}>{value}</Animated.Text></View>;
 }
 
+// an on/off toggle whose white knob glides across with a soft spring (the same on every phone and the web),
+export function Toggle({ value, onChange, onColor, offColor, label }: { value: boolean; onChange: (next: boolean) => void; onColor: string; offColor: string; label: string }) {
+  const x = useSharedValue(value ? 1 : 0);
+  useEffect(() => { x.value = withSpring(value ? 1 : 0, { damping: 15, stiffness: 180 }); }, [value, x]);
+  const knob = useAnimatedStyle(() => ({ transform: [{ translateX: x.value * 20 }] }));
+  return <Pressable accessibilityRole="switch" accessibilityLabel={label} accessibilityState={{ checked: value }} hitSlop={8} onPress={() => { buzz(); onChange(!value); }} style={[styles.track, { backgroundColor: value ? onColor : offColor }]}>
+    <Animated.View style={[styles.knob, knob]} />
+  </Pressable>;
+}
+
 // and a win gets a short burst of confetti falling over the screen.
 const confettiColors = ["#FF4655", "#FFD166", "#06D6A0", "#4CC9F0", "#B388FF", "#FFFFFF"];
 export function Confetti() {
@@ -75,5 +94,7 @@ const styles = StyleSheet.create({
   pop: { alignItems: "center", justifyContent: "center" },
   spark: { position: "absolute", width: 5, height: 5, borderRadius: 3 },
   roll: { overflow: "hidden" },
+  track: { width: 50, height: 30, borderRadius: 15, padding: 2, justifyContent: "center" },
+  knob: { width: 26, height: 26, borderRadius: 13, backgroundColor: "#FFFFFF", shadowColor: "#000", shadowOpacity: 0.2, shadowRadius: 2, shadowOffset: { width: 0, height: 1 }, elevation: 2 },
   piece: { position: "absolute", top: -12, width: 8, height: 12, borderRadius: 2 },
 });

@@ -12,8 +12,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { font } from "@/constants/type";
 import { useColors } from "@/hooks/useColors";
 
-const labels: Record<string, string> = { index: "Partidas", following: "Favoritos", insights: "Previsões", search: "Buscar" };
-const icons = { index: "clock", following: "star", insights: "bar-chart-2", search: "search" } as const;
+const labels: Record<string, string> = { index: "Partidas", following: "Favoritos", insights: "Previsões", picks: "Palpites", search: "Buscar" };
+const icons = { index: "clock", following: "star", insights: "bar-chart-2", picks: "target", search: "search" } as const;
 // New accounts with nothing followed see the onboarding once; people who already follow something skip it.
 function useFirstRun() {
   const userId = useAuth().session?.user.id;
@@ -47,6 +47,7 @@ export default function TabLayout() {
   </View>}>
     <Tabs.Screen name="index" options={{ title: "Partidas" }} />
     <Tabs.Screen name="insights" options={{ title: "Previsões" }} />
+    <Tabs.Screen name="picks" options={{ title: "Palpites" }} />
     <Tabs.Screen name="following" options={{ title: "Favoritos" }} />
     <Tabs.Screen name="search" options={{ title: "Buscar" }} />
   </Tabs>;

@@ -22,10 +22,10 @@ function find(list: Listed[], match: Match) {
       || (same(item.teams[0].name, match.awayTeam.name) && same(item.teams[1].name, match.homeTeam.name))));
 }
 
-// Live matches are looked up among those in play, finished ones among the latest results (three pages, about a week).
+// Live matches are looked up among those in play, finished ones among the latest results (five pages, about a month).
 async function vlrId(match: Match): Promise<string | null> {
   if (match.status === "live") return find((await get<Listed[]>("/matches")) ?? [], match)?.id ?? null;
-  for (let page = 1; page <= 3; page++) {
+  for (let page = 1; page <= 5; page++) {
     const hit = find((await get<Listed[]>(`/results?page=${page}`)) ?? [], match);
     if (hit) return hit.id;
   }
@@ -35,7 +35,7 @@ async function vlrId(match: Match): Promise<string | null> {
 // The series' games with the map name and the rounds each side took, in the series' order.
 export async function withMapNames(match: Match): Promise<Match> {
   if (match.status !== "live" && match.status !== "finished") return match;
-  if (match.startTime && Date.now() - Date.parse(match.startTime) > 8 * 86_400_000) return match;
+  if (match.startTime && Date.now() - Date.parse(match.startTime) > 35 * 86_400_000) return match;
   const id = await vlrId(match).catch(() => null);
   const detail = id ? await get<{ maps?: VlrMap[] }>(`/matches/${id}`).catch(() => null) : null;
   const maps = (detail?.maps ?? []).filter((map) => map.name && map.name !== "TBD");

@@ -86,6 +86,10 @@ export default function Profile() {
           <Text style={[styles.rowLabel, { color: colors.primary }]}>{simulating ? "Enviando…" : "Simular notificação"}</Text>
           <Feather name="bell" size={18} color={colors.primary} />
         </Pressable>
+        <Pressable accessibilityRole="button" onPress={() => router.push("/onboarding")} style={[styles.row, styles.divider, { borderTopColor: colors.border }]}>
+          <Text style={[styles.rowLabel, { color: colors.foreground }]}>Ver introdução</Text>
+          <Feather name="play-circle" size={18} color={colors.mutedForeground} />
+        </Pressable>
       </View>
 
       <Text style={[styles.section, { color: colors.mutedForeground }]}>Conta</Text>

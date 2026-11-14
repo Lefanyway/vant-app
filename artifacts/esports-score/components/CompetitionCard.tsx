@@ -1,3 +1,4 @@
+import { Appear } from "@/components/Motion";
 import { Ionicons } from "@expo/vector-icons";
 import { Feather } from "@expo/vector-icons";
 import { useState } from "react";
@@ -23,7 +24,7 @@ export function CompetitionCard({ name, stage, logoUrl, matches, onMatchPress, o
     setOpen((current) => !current);
   };
   return (
-    <View style={[styles.card, { backgroundColor: colors.card }]}>
+    <Appear><View style={[styles.card, { backgroundColor: colors.card }]}>
       <View style={styles.header}>
         <Pressable accessibilityRole={onOpen ? "link" : "button"} accessibilityState={onOpen ? undefined : { expanded: open }} accessibilityLabel={onOpen ? `Abrir ${name}` : `${open ? "Recolher" : "Expandir"} ${name}`} onPress={onOpen || toggle} style={styles.headerMain}>
           <ResolvedLogo type="competition" name={name} logoUrl={logoUrl ?? matches[0]?.competitionLogoUrl} entityId={matches[0]?.competitionId} size={36} maxWidth={48} />
@@ -36,7 +37,7 @@ export function CompetitionCard({ name, stage, logoUrl, matches, onMatchPress, o
         {id && !id.startsWith("unknown:") ? <Pressable accessibilityRole="button" accessibilityLabel={`${saved ? "Desfavoritar" : "Favoritar"} ${name}`} accessibilityState={{ selected: saved }} onPress={() => toggleCompetition?.(id)} style={styles.open}><Ionicons name={saved ? "star" : "star-outline"} size={21} color={saved ? colors.primary : colors.mutedForeground} /></Pressable> : null}
       </View>
       {open ? matches.map((match) => <MatchCard key={match.id} match={match} onPress={() => onMatchPress(match)} />) : null}
-    </View>
+    </View></Appear>
   );
 }
 

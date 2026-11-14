@@ -1,3 +1,4 @@
+import { pressed } from "@/components/Motion";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -124,7 +125,7 @@ function Pick({ kind, title, subtitle }: { kind: "team" | "competition"; title: 
 
 function Choice({ item, kind, on, onPress }: { item: ApiSearchResult; kind: "team" | "competition"; on: boolean; onPress: () => void }) {
   const colors = useColors();
-  return <Pressable accessibilityRole="checkbox" accessibilityState={{ checked: on }} accessibilityLabel={item.name} onPress={onPress} style={[styles.choice, { backgroundColor: on ? colors.accent : colors.card, borderColor: on ? colors.primary : "transparent" }]}>
+  return <Pressable accessibilityRole="checkbox" accessibilityState={{ checked: on }} accessibilityLabel={item.name} onPress={onPress} style={pressed([styles.choice, { backgroundColor: on ? colors.accent : colors.card, borderColor: on ? colors.primary : "transparent" }])}>
     <ResolvedLogo type={kind} entityId={item.id} name={item.name} logoUrl={item.logoUrl} size={34} />
     <View style={styles.featureCopy}><Text numberOfLines={1} style={[styles.choiceName, { color: colors.foreground }]}>{item.name}</Text><Text numberOfLines={1} style={[styles.featureText, { color: colors.mutedForeground }]}>{item.countryName || item.season || "Valorant"}</Text></View>
     <Ionicons name={on ? "checkmark-circle" : "add-circle-outline"} size={24} color={on ? colors.primary : colors.mutedForeground} />

@@ -1,3 +1,4 @@
+import { pressed } from "@/components/Motion";
 import { useSpoilers } from "@/context/SpoilerContext";
 import { useEffect, useRef, useState } from "react";
 import { AccessibilityInfo, Animated, Platform, Pressable, StyleSheet, Text, View } from "react-native";
@@ -55,7 +56,7 @@ export function MatchCard({ match, onPress, showDay = false }: { match: Match; o
         accessibilityRole="button"
         accessibilityLabel={`${match.teamA.name} contra ${match.teamB.name}, ${status}`}
         onPress={onPress}
-        style={({ pressed }) => [styles.main, { opacity: pressed ? 0.72 : 1 }]}
+        style={pressed(styles.main)}
       >
         <View style={styles.timeColumn}>
           {live ? <LiveDot /> : null}

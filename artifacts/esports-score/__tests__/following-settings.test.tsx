@@ -13,8 +13,9 @@ test("lists followed teams and competitions with their alert setting", () => {
   ];
   render(<FollowingSettings />);
   expect(screen.getByText("LOUD")).toBeTruthy();
-  expect(screen.getByText("Equipe · com avisos")).toBeTruthy();
-  expect(screen.getByText("Competição · sem avisos")).toBeTruthy();
+  expect(screen.getByText("Equipe")).toBeTruthy();
+  expect(screen.getByLabelText("Avisos de LOUD")).toBeTruthy();
+  expect(screen.getByText("Competição")).toBeTruthy();
   expect(screen.getByLabelText("Deixar de seguir LOUD")).toBeTruthy();
 });
 

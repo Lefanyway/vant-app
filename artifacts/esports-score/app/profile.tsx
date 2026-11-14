@@ -90,7 +90,7 @@ export default function Profile() {
         </Pressable>
         <Pressable accessibilityRole="switch" accessibilityState={{ checked: spoilers.hideScores }} onPress={() => spoilers.setHideScores(!spoilers.hideScores)} style={[styles.row, styles.divider, { borderTopColor: colors.border }]}>
           <View style={{ flex: 1 }}><Text style={[styles.rowLabel, { color: colors.foreground }]}>Sem spoiler</Text><Text style={{ fontSize: 12, color: colors.mutedForeground, marginTop: 2 }}>Esconde os placares até você tocar em "Ver placar"</Text></View>
-          <Switch value={spoilers.hideScores} onValueChange={spoilers.setHideScores} trackColor={{ true: colors.primary }} />
+          <Switch value={spoilers.hideScores} onValueChange={spoilers.setHideScores} trackColor={{ true: colors.primary, false: colors.secondary }} thumbColor="#FFFFFF" {...({ activeThumbColor: "#FFFFFF" } as object)} ios_backgroundColor={colors.secondary} />
         </Pressable>
         <Pressable accessibilityRole="button" onPress={() => router.push("/onboarding")} style={[styles.row, styles.divider, { borderTopColor: colors.border }]}>
           <Text style={[styles.rowLabel, { color: colors.foreground }]}>Ver introdução</Text>

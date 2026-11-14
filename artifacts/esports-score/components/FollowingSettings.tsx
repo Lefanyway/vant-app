@@ -55,7 +55,7 @@ export function FollowingSettings() {
             <ResolvedLogo type={item.kind} name={item.name} entityId={item.entity_id} logoUrl={item.logo_url} size={30} />
             <View style={styles.copy}>
               <Text numberOfLines={1} style={[styles.name, { color: colors.foreground }]}>{item.name.trim()}</Text>
-              <Text style={[styles.meta, { color: colors.mutedForeground }]}>{item.kind === "team" ? "Equipe" : "Competição"}{item.notify === null ? "" : item.notify ? " · com avisos" : " · sem avisos"}</Text>
+              <Text style={[styles.meta, { color: colors.mutedForeground }]}>{item.kind === "team" ? "Equipe" : "Competição"}</Text>
             </View>
             </Pressable>
             {item.notify === null ? null : <Pressable accessibilityRole="switch" accessibilityState={{ checked: item.notify }} accessibilityLabel={`Avisos de ${item.name}`} onPress={() => void setNotify(item)} style={styles.icon}>

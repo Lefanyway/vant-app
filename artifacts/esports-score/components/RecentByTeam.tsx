@@ -1,3 +1,4 @@
+import { Appear } from "@/components/Motion";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { MatchCard } from "@/components/MatchCard";
@@ -35,7 +36,7 @@ export function CompetitionGroups({ matches }: { matches: Match[] }) {
   const groups = new Map<string, Match[]>();
   for (const match of matches) groups.set(match.tournament, [...(groups.get(match.tournament) ?? []), match]);
   return <View>
-    {[...groups.entries()].map(([name, group]) => <View key={name} style={[styles.card, { backgroundColor: colors.card }]}>
+    {[...groups.entries()].map(([name, group], index) => <Appear key={name} index={index}><View style={[styles.card, { backgroundColor: colors.card }]}>
         <View style={styles.header}>
           <ResolvedLogo type="competition" name={name} entityId={group[0].competitionId} logoUrl={group[0].competitionLogoUrl} size={34} />
           <View style={styles.copy}>
@@ -44,7 +45,7 @@ export function CompetitionGroups({ matches }: { matches: Match[] }) {
           </View>
         </View>
         {group.map((match) => <MatchCard key={match.id} match={match} showDay onPress={() => openMatch(match.id, match)} />)}
-      </View>)}
+      </View></Appear>)}
   </View>;
 }
 

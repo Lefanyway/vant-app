@@ -1,5 +1,5 @@
 import { Feather } from "@expo/vector-icons";
-import { Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { pressed } from "@/components/Motion";
 import { font } from "@/constants/type";
 import { useColors } from "@/hooks/useColors";
@@ -18,21 +18,21 @@ export function Avatar({ id, name, size = 84 }: { id?: string | null; name: stri
   </View>;
 }
 
-// One row per theme, scrolled sideways, like a streaming service's icon picker: tap one, it gets a ring and a check.
+// A grid per theme, four across, like a streaming service's icon picker: tap one, it gets a ring and a check.
 export function AvatarPicker({ value, onChange, name }: { value?: string | null; onChange: (id: string) => void; name: string }) {
   const colors = useColors();
   return <View>
     {avatarGroups.map((group) => <View key={group.title}>
       <Text style={[styles.group, { color: colors.foreground }]}>{group.title}</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.row}>
+      <View style={styles.grid}>
         {group.items.map((item) => {
           const on = item.id === value;
-          return <Pressable key={item.id} accessibilityRole="radio" accessibilityState={{ selected: on }} accessibilityLabel={item.label} onPress={() => onChange(item.id)} style={pressed()}>
-            <View style={[styles.ring, { borderColor: on ? colors.foreground : "transparent" }]}><Avatar id={item.id} name={name} size={76} /></View>
+          return <Pressable key={item.id} accessibilityRole="radio" accessibilityState={{ selected: on }} accessibilityLabel={item.label} onPress={() => onChange(item.id)} style={pressed(styles.cell)}><View>
+            <View style={[styles.ring, { borderColor: on ? colors.foreground : "transparent" }]}><Avatar id={item.id} name={name} size={68} /></View>
             {on ? <View style={[styles.check, { backgroundColor: colors.foreground, borderColor: colors.background }]}><Feather name="check" size={13} color={colors.background} /></View> : null}
-          </Pressable>;
+          </View></Pressable>;
         })}
-      </ScrollView>
+      </View>
     </View>)}
   </View>;
 }
@@ -40,7 +40,8 @@ export function AvatarPicker({ value, onChange, name }: { value?: string | null;
 const styles = StyleSheet.create({
   center: { alignItems: "center", justifyContent: "center" },
   group: { fontSize: 16, fontFamily: font.bold, marginTop: 18, marginBottom: 10 },
-  row: { gap: 8, paddingRight: 20 },
+  grid: { flexDirection: "row", flexWrap: "wrap", rowGap: 12 },
+  cell: { width: "25%", alignItems: "center" },
   ring: { borderWidth: 3, borderRadius: 16, padding: 2 },
   check: { position: "absolute", top: -4, right: -4, width: 24, height: 24, borderRadius: 12, borderWidth: 2, alignItems: "center", justifyContent: "center" },
 });

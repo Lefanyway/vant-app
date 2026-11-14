@@ -41,7 +41,7 @@ export type Match = {
 };
 
 // One map of a series: its number, state, winner (team id), start and length in minutes.
-export type MatchGame = { number: number; status: "scheduled" | "live" | "finished"; winnerId?: string; startTime?: string; minutes?: number };
+export type MatchGame = { number: number; status: "scheduled" | "live" | "finished"; winnerId?: string; startTime?: string; minutes?: number; mapName?: string; homeRounds?: number; awayRounds?: number };
 
 export function formatLabel(format?: Match["format"]) {
   return format;

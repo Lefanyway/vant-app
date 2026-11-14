@@ -6,7 +6,7 @@ import type { Match } from "@/lib/data";
 import { listTeamLabel } from "@/lib/matches";
 
 // The series map by map: who took each map, when it started and how long it lasted, the one in play marked live.
-// The free data plan does not name the maps or give round scores, so the line says what is known.
+// Map names and round scores come from VLR.gg when the match is found there; otherwise the line says what is known.
 export function MatchTimeline({ match }: { match: Match }) {
   const colors = useColors();
   const games = match.games ?? [];
@@ -31,7 +31,10 @@ export function MatchTimeline({ match }: { match: Match }) {
             {!last ? <View style={[styles.line, { backgroundColor: done ? colors.primary : colors.secondary }]} /> : null}
           </View>
           <View style={styles.body}>
-            <Text style={[styles.mapName, { color: skipped ? colors.mutedForeground : colors.foreground }]}>Mapa {game.number}</Text>
+            <View style={styles.mapLine}>
+              <Text style={[styles.mapName, { color: skipped ? colors.mutedForeground : colors.foreground }]}>Mapa {game.number}{"mapName" in game && game.mapName ? ` · ${game.mapName}` : ""}</Text>
+              {"homeRounds" in game && typeof game.homeRounds === "number" && typeof game.awayRounds === "number" ? <Text style={[styles.rounds, { color: colors.foreground }]}>{game.homeRounds}–{game.awayRounds}</Text> : null}
+            </View>
             {winner ? <View style={styles.winner}>
               <ResolvedLogo type="team" name={winner.name} entityId={winner.id} logoUrl={winner.logoUrl} size={20} />
               <Text style={[styles.detail, { color: colors.foreground }]}>{listTeamLabel(winner, 16)} venceu</Text>
@@ -53,7 +56,9 @@ const styles = StyleSheet.create({
   dot: { width: 14, height: 14, borderRadius: 7, borderWidth: 3 },
   line: { width: 2, flex: 1, marginVertical: 2 },
   body: { flex: 1, minWidth: 0, paddingBottom: 18, gap: 4 },
-  mapName: { fontSize: 14, fontFamily: font.semibold },
+  mapLine: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 },
+  mapName: { flexShrink: 1, fontSize: 14, fontFamily: font.semibold },
+  rounds: { fontSize: 15, fontFamily: font.bold, fontVariant: ["tabular-nums"] },
   winner: { flexDirection: "row", alignItems: "center", gap: 6 },
   detail: { fontSize: 13, fontFamily: font.medium },
   series: { fontSize: 12, fontFamily: font.medium },

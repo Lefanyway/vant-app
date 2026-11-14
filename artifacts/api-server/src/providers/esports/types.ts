@@ -50,7 +50,7 @@ export type Match = {
   // Map by map, as far as the provider tells it: order, who won, when it started and how long it took.
   games?: MatchGame[];
 };
-export type MatchGame = { number: number; status: 'scheduled' | 'live' | 'finished'; winnerId?: string; startTime?: string; minutes?: number };
+export type MatchGame = { number: number; status: 'scheduled' | 'live' | 'finished'; winnerId?: string; startTime?: string; minutes?: number; mapName?: string; homeRounds?: number; awayRounds?: number };
 export type MatchDetails = {
   match: Match;
   maps: { id: string; mapName?: string; mapNumber: number; homeScore?: number; awayScore?: number }[];

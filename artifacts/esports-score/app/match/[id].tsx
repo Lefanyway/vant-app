@@ -17,8 +17,7 @@ import { useColors } from "@/hooks/useColors";
 import { TeamLink } from "@/components/TeamLink";
 import { useActiveScreen } from "@/hooks/useActiveScreen";
 import { WinProbability } from "@/components/WinProbability";
-import { ResultList } from "@/components/ResultRow";
-import { RecentByTeam } from "@/components/RecentByTeam";
+import { CompetitionGroups, RecentByTeam } from "@/components/RecentByTeam";
 import { ShareButton } from "@/components/ShareButton";
 import { officialStreams, WatchOptions } from "@/components/WatchOptions";
 
@@ -98,7 +97,7 @@ function Economy({ details, colors }: { details: MatchDetails; colors: ReturnTyp
 }
 
 function H2H({ details, colors }: { details: MatchDetails; colors: ReturnType<typeof useColors> }) {
-  return <View><SectionTitle title="Confrontos anteriores" colors={colors} />{details.headToHead.length === 0 ? <Unavailable text="Ainda não há confrontos anteriores disponíveis." colors={colors} /> : <ResultList matches={details.headToHead.slice(0, 5)} />}</View>;
+  return <View><SectionTitle title="Confrontos anteriores" colors={colors} />{details.headToHead.length === 0 ? <Unavailable text="Ainda não há confrontos anteriores disponíveis." colors={colors} /> : <CompetitionGroups matches={details.headToHead.slice(0, 5)} />}</View>;
 }
 
 function RecentMatches({ details }: { details: MatchDetails; colors: ReturnType<typeof useColors> }) {

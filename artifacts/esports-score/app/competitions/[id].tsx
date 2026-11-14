@@ -5,12 +5,12 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BackButton } from "@/components/BackButton";
 import { ListSkeleton } from "@/components/MobileChrome";
-import { MatchCard } from "@/components/MatchCard";
 import { UpcomingCard } from "@/components/UpcomingCard";
+import { CompetitionGroups } from "@/components/RecentByTeam";
 import { ResolvedLogo } from "@/components/ResolvedLogo";
 import { useColors } from "@/hooks/useColors";
 import { ApiError, errorMessage, fetchCompetition, type ApiCompetition, fetchCompetitionMatches, toMatch } from "@/lib/api";
-import { goBackOrHome, openMatch } from "@/lib/navigation";
+import { goBackOrHome } from "@/lib/navigation";
 
 export default function CompetitionDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -57,7 +57,7 @@ function MatchSection({ title, query, colors, empty }: { title: string; query: {
       {query.isLoading && !query.data ? <ListSkeleton count={2} />
         : query.isError && !query.data ? <View><Text style={[styles.message, { color: colors.mutedForeground }]}>{errorMessage(query.error, "Não foi possível carregar as partidas.")}</Text><Pressable accessibilityRole="button" onPress={() => query.refetch()}><Text style={[styles.retry, { color: colors.primary }]}>Tentar novamente</Text></Pressable></View>
           : matches.length === 0 ? <Text style={[styles.message, { color: colors.mutedForeground }]}>{empty}</Text>
-            : matches.map((match) => match.status === "Upcoming" || match.status === "Live" ? <UpcomingCard key={match.id} match={match} /> : <MatchCard key={match.id} match={match} onPress={() => openMatch(match.id, match)} />)}
+            : matches.some((match) => match.status === "Upcoming" || match.status === "Live") ? matches.map((match) => <UpcomingCard key={match.id} match={match} />) : <CompetitionGroups matches={matches} />}
     </View>
   );
 }

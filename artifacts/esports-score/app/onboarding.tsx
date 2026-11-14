@@ -1,5 +1,5 @@
 import { Appear, pressed } from "@/components/Motion";
-import { AvatarPicker } from "@/components/Avatar";
+import { Avatar, AvatarPicker } from "@/components/Avatar";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -20,9 +20,9 @@ import { onboardingKey, popularCompetitions, popularTeams } from "@/lib/onboardi
 const mark = require("../assets/generated/games/valorant-mark.png");
 
 const intro = [
-  { icon: "play-circle" as const, title: "Partidas ao vivo e resultados", text: "Todos os jogos de Valorant do dia, de todas as ligas, em um só lugar." },
-  { icon: "star" as const, title: "Siga seus times", text: "Escolha times e campeonatos e receba um aviso quando eles começam e terminam." },
-  { icon: "bar-chart-2" as const, title: "Quem deve ganhar", text: "Antes de cada partida, a chance de vitória de cada time, com o porquê explicado." },
+  { icon: "play-circle" as const, title: "Jogos ao vivo", text: "Todos os jogos do dia num só lugar." },
+  { icon: "star" as const, title: "Siga seus times", text: "Avisamos quando eles jogam." },
+  { icon: "bar-chart-2" as const, title: "Quem deve ganhar", text: "A chance de cada time, explicada." },
 ];
 
 // First run: what VANT is, then the teams and competitions to follow, then alerts. Every step can be skipped.
@@ -57,10 +57,11 @@ export default function Onboarding() {
   };
   const steps = [
     <Welcome key="welcome" />,
-    <Name key="name" nick={nick} onNick={setNick} avatar={avatar} onAvatar={setAvatar} />,
+    <Name key="name" nick={nick} onNick={setNick} onDone={() => setStep(2)} />,
+    <AvatarStep key="avatar" nick={nick} avatar={avatar} onAvatar={setAvatar} />,
     <Glossary key="glossary" />,
-    <Pick key="teams" kind="team" title="Quais times você torce?" subtitle="Escolha quantos quiser. Você recebe aviso quando eles jogam." />,
-    <Pick key="competitions" kind="competition" title="E quais campeonatos?" subtitle="Os jogos deles aparecem nos seus Favoritos." />,
+    <Pick key="teams" kind="team" title="Quais times você torce?" subtitle="Escolha quantos quiser." />,
+    <Pick key="competitions" kind="competition" title="E quais campeonatos?" subtitle="Eles aparecem nos seus Favoritos." />,
     <Alerts key="alerts" />,
   ];
   const last = step === steps.length - 1;
@@ -85,7 +86,7 @@ function Welcome() {
   return <View style={styles.welcome}>
     <Image source={mark} resizeMode="contain" accessibilityLabel="VANT" style={styles.mark} />
     <Text style={[styles.title, { color: colors.foreground }]}>Bem-vindo ao VANT</Text>
-    <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>O cenário competitivo de Valorant na palma da mão, mesmo para quem está começando a acompanhar.</Text>
+    <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>Valorant competitivo, fácil de acompanhar.</Text>
     <View style={styles.features}>
       {intro.map((item) => <View key={item.title} style={[styles.feature, { backgroundColor: colors.card }]}>
         <View style={[styles.featureIcon, { backgroundColor: colors.accent }]}><Feather name={item.icon} size={20} color={colors.primary} /></View>
@@ -119,14 +120,26 @@ function Glossary() {
   </View>;
 }
 
-// The nickname and picture other fans will see.
-function Name({ nick, onNick, avatar, onAvatar }: { nick: string; onNick: (value: string) => void; avatar: string | null; onAvatar: (id: string) => void }) {
+// One thing at a time: first only the nickname,
+function Name({ nick, onNick, onDone }: { nick: string; onNick: (value: string) => void; onDone: () => void }) {
+  const colors = useColors();
+  return <View style={styles.welcome}>
+    <Text style={[styles.title, { color: colors.foreground, marginTop: 40 }]}>Como você quer se chamar?</Text>
+    <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>É assim que os outros fãs vão te ver.</Text>
+    <TextInput value={nick} onChangeText={onNick} placeholder="Seu apelido" placeholderTextColor={colors.mutedForeground} maxLength={30} autoCorrect={false} autoFocus returnKeyType="next" onSubmitEditing={onDone} accessibilityLabel="Apelido" style={[styles.nick, { backgroundColor: colors.card, color: colors.foreground }, Platform.OS === "web" ? ({ outlineStyle: "none" } as object) : null]} />
+  </View>;
+}
+
+// then the picture, with the chosen one big on top next to the nickname.
+function AvatarStep({ nick, avatar, onAvatar }: { nick: string; avatar: string | null; onAvatar: (id: string) => void }) {
   const colors = useColors();
   return <View style={styles.pick}>
-    <Text style={[styles.title, { color: colors.foreground }]}>Como você quer se chamar?</Text>
-    <TextInput value={nick} onChangeText={onNick} placeholder="Seu apelido" placeholderTextColor={colors.mutedForeground} maxLength={30} autoCorrect={false} accessibilityLabel="Apelido" style={[styles.nick, { backgroundColor: colors.card, color: colors.foreground }, Platform.OS === "web" ? ({ outlineStyle: "none" } as object) : null]} />
-    <Text style={[styles.count, { color: colors.mutedForeground }]}>Escolha seu avatar</Text>
-    <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} style={styles.list} contentContainerStyle={{ paddingBottom: 20 }}>
+    <View style={styles.preview}>
+      <Avatar id={avatar} name={nick || "?"} size={88} />
+      <Text numberOfLines={1} style={[styles.choiceName, { color: colors.foreground }]}>{nick.trim() || "Você"}</Text>
+    </View>
+    <Text style={[styles.title, { color: colors.foreground }]}>Escolha seu avatar</Text>
+    <ScrollView showsVerticalScrollIndicator={false} style={styles.list} contentContainerStyle={{ paddingBottom: 20 }}>
       <AvatarPicker value={avatar} onChange={onAvatar} name={nick} />
     </ScrollView>
   </View>;
@@ -206,7 +219,7 @@ function Alerts() {
   return <View style={styles.welcome}>
     <View style={[styles.bell, { backgroundColor: colors.accent }]}><Feather name="bell" size={34} color={colors.primary} /></View>
     <Text style={[styles.title, { color: colors.foreground }]}>Não perca nenhum jogo</Text>
-    <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>Avisamos quando uma partida dos seus times começa e quando termina, com o placar. Você escolhe quais times avisam no seu perfil.</Text>
+    <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>Avisamos quando seus times começam e terminam de jogar.</Text>
     <ExampleNotification />
     {Platform.OS === "web" ? null : <Pressable accessibilityRole="button" onPress={async () => setState(await ensurePermission() ? "on" : "off")} style={[styles.secondaryWide, { backgroundColor: colors.card }]}>
         <Feather name={state === "on" ? "check" : "bell"} size={18} color={state === "on" ? colors.positive : colors.foreground} />
@@ -239,7 +252,8 @@ const styles = StyleSheet.create({
   featureTitle: { fontSize: 15, fontFamily: font.semibold },
   featureText: { fontSize: 13, lineHeight: 18, fontFamily: font.regular },
   pick: { flex: 1, gap: 8 },
-  nick: { height: 54, borderRadius: 18, paddingHorizontal: 18, fontSize: 17, fontFamily: font.semibold, marginTop: 8 },
+  nick: { alignSelf: "stretch", height: 60, borderRadius: 20, paddingHorizontal: 18, fontSize: 20, fontFamily: font.semibold, textAlign: "center", marginTop: 16 },
+  preview: { alignItems: "center", gap: 8, marginBottom: 4 },
   term: { borderRadius: 20, padding: 16, flexDirection: "row", gap: 16, alignItems: "center" },
   termIcon: { width: 52, height: 52, borderRadius: 26, alignItems: "center", justifyContent: "center" },
   termTitle: { fontSize: 18, fontFamily: font.bold },

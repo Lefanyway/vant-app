@@ -2,6 +2,7 @@ import { Image } from "expo-image";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
 import { Flag } from "@/components/Flag";
 import { UpcomingCard } from "@/components/UpcomingCard";
+import { CompetitionGroups } from "@/components/RecentByTeam";
 import { RecentForm } from "@/components/RecentForm";
 import { useSwipeTabs } from "@/components/SwipeTabs";
 import { GestureDetector } from "react-native-gesture-handler";
@@ -105,7 +106,17 @@ function MatchesTab({ teamId, team, colors }: { teamId: string; team: Team; colo
   const [filter, setFilter] = useState<"all" | "upcoming" | "finished">("all");
   const matches = useInfiniteQuery({ queryKey: ["team-matches", teamId, filter], queryFn: ({ pageParam }) => fetchTeamMatches(teamId, filter, pageParam), initialPageParam: 1, getNextPageParam: (last, pages) => last.hasMore ? pages.length + 1 : undefined, staleTime: 60 * 60_000 });
   const rows = matches.data?.pages.flatMap((page) => page.matches) ?? [];
-  return <View><View style={[styles.filterBar, { backgroundColor: colors.card, borderColor: colors.border }]}>{(["all", "upcoming", "finished"] as const).map((item) => <Pressable key={item} onPress={() => setFilter(item)} style={[styles.filter, filter === item && { backgroundColor: colors.secondary }]}><Text style={[styles.filterText, { color: filter === item ? colors.foreground : colors.mutedForeground }]}>{({ all: "Todas", upcoming: "Próximas", finished: "Finalizadas" })[item]}</Text></Pressable>)}</View>{matches.isLoading ? <ListSkeleton count={2} /> : matches.isError ? <View><Empty text={errorMessage(matches.error, "Não foi possível carregar as partidas.")} colors={colors} /><Pressable onPress={() => matches.refetch()} style={[styles.moreButton, { borderColor: colors.border }]}><Text style={[styles.moreText, { color: colors.primary }]}>Tentar novamente</Text></Pressable></View> : rows.length ? rows.map((match) => <MatchRow key={match.id} match={toMatch(match)} focusTeam={team} colors={colors} />) : <Empty text="Nenhuma partida encontrada." colors={colors} />}{matches.hasNextPage ? <Pressable onPress={() => matches.fetchNextPage()} style={[styles.moreButton, { borderColor: colors.border }]}><Text style={[styles.moreText, { color: colors.primary }]}>{matches.isFetchingNextPage ? "Carregando…" : "Carregar mais"}</Text></Pressable> : null}</View>;
+  return <View><View style={[styles.filterBar, { backgroundColor: colors.card, borderColor: colors.border }]}>{(["all", "upcoming", "finished"] as const).map((item) => <Pressable key={item} onPress={() => setFilter(item)} style={[styles.filter, filter === item && { backgroundColor: colors.secondary }]}><Text style={[styles.filterText, { color: filter === item ? colors.foreground : colors.mutedForeground }]}>{({ all: "Todas", upcoming: "Próximas", finished: "Finalizadas" })[item]}</Text></Pressable>)}</View>{matches.isLoading ? <ListSkeleton count={2} /> : matches.isError ? <View><Empty text={errorMessage(matches.error, "Não foi possível carregar as partidas.")} colors={colors} /><Pressable onPress={() => matches.refetch()} style={[styles.moreButton, { borderColor: colors.border }]}><Text style={[styles.moreText, { color: colors.primary }]}>Tentar novamente</Text></Pressable></View> : rows.length ? <TeamMatchList matches={rows.map(toMatch)} /> : <Empty text="Nenhuma partida encontrada." colors={colors} />}{matches.hasNextPage ? <Pressable onPress={() => matches.fetchNextPage()} style={[styles.moreButton, { borderColor: colors.border }]}><Text style={[styles.moreText, { color: colors.primary }]}>{matches.isFetchingNextPage ? "Carregando…" : "Carregar mais"}</Text></Pressable> : null}</View>;
+}
+
+// The app's standard: upcoming matches as cards, results grouped by competition with the date on each match.
+function TeamMatchList({ matches }: { matches: Match[] }) {
+  const upcoming = matches.filter((match) => match.status === "Upcoming" || match.status === "Live").sort((a, b) => Date.parse(a.startTime ?? "") - Date.parse(b.startTime ?? ""));
+  const past = matches.filter((match) => match.status !== "Upcoming" && match.status !== "Live");
+  return <View>
+    {upcoming.map((match) => <UpcomingCard key={match.id} match={match} />)}
+    {past.length ? <CompetitionGroups matches={past} /> : null}
+  </View>;
 }
 
 function RosterTab({ teamId, preview, colors }: { teamId: string; preview: ApiPlayer[]; colors: ReturnType<typeof useColors> }) {
@@ -121,26 +132,6 @@ function StatsTab({ teamId, colors }: { teamId: string; colors: ReturnType<typeo
   return <View><Section title="Últimos 30 dias" colors={colors} />{query.isLoading ? <ListSkeleton count={1} /> : query.isError ? <View><Empty text={errorMessage(query.error, "Estatísticas indisponíveis.")} colors={colors} /><Pressable onPress={() => query.refetch()} style={[styles.moreButton, { borderColor: colors.border }]}><Text style={[styles.moreText, { color: colors.primary }]}>Tentar novamente</Text></Pressable></View> : !stats ? <Empty text="Estatísticas indisponíveis." colors={colors} /> : <View style={[styles.statsGrid, { backgroundColor: colors.card, borderColor: colors.border }]}><StatCard label="Partidas" value={stats.matches} colors={colors} /><StatCard label="Vitórias" value={stats.wins} colors={colors} /><StatCard label="Derrotas" value={stats.losses} colors={colors} /><StatCard label="Aproveitamento" value={stats.matches > 0 ? `${Math.round((stats.wins / stats.matches) * 100)}%` : "—"} colors={colors} />{typeof stats.elo === "number" ? <StatCard label="Elo atual (modelo VANT)" value={stats.elo} colors={colors} /> : null}</View>}</View>;
 }
 
-function MatchRow({ match, focusTeam, colors }: { match: Match; focusTeam: Team; colors: ReturnType<typeof useColors> }) {
-  const opponent = match.teamA.id === focusTeam.id ? match.teamB : match.teamA;
-  const ownScore = match.teamA.id === focusTeam.id ? match.scoreA : match.scoreB;
-  const opponentScore = match.teamA.id === focusTeam.id ? match.scoreB : match.scoreA;
-  const result = ownScore === undefined || opponentScore === undefined ? "—" : ownScore > opponentScore ? "W" : ownScore < opponentScore ? "L" : "D";
-  const finished = match.status === "Finished";
-  const when = finished ? (match.startTime ? new Date(match.startTime).toLocaleDateString("pt-BR", { month: "short", day: "numeric" }) : "Data indisponível") : matchDayLabel(match);
-  const score = ownScore === undefined || opponentScore === undefined ? "vs" : `${ownScore}–${opponentScore}`;
-  const label = result === "W" ? "Vitória" : result === "L" ? "Derrota" : result === "D" ? "Empate" : "Resultado indisponível";
-  const tone = result === "W" ? colors.positive : result === "L" ? colors.destructive : colors.mutedForeground;
-  return <Pressable onPress={() => openMatch(match.id, match)} style={[styles.matchRow, { backgroundColor: colors.card, borderColor: colors.border }]}>
-    <Text style={[styles.matchCompetition, { color: colors.mutedForeground }]} numberOfLines={1}>{match.tournament}</Text>
-    <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-      <View style={{ width: 52 }}><Text style={[styles.matchDate, { color: colors.mutedForeground, marginTop: 0 }]}>{when}</Text>{finished ? null : <Text style={[styles.matchDate, { color: colors.mutedForeground, marginTop: 2 }]}>{match.time}</Text>}</View>
-      <View style={{ flex: 1, minWidth: 0 }}><TeamLink team={opponent} fill><View style={{ flex: 1, minWidth: 0, flexDirection: "row", alignItems: "center", gap: 8 }}><ResolvedLogo type="team" name={opponent.name} entityId={opponent.id} game={opponent.game} logoUrl={opponent.logoUrl} size={28} /><Text style={{ flex: 1, minWidth: 0, color: colors.foreground, fontSize: 13, fontWeight: "600" }} numberOfLines={1}>{opponent.name}</Text></View></TeamLink></View>
-      <Text style={[styles.matchScore, { color: score === "vs" ? colors.mutedForeground : colors.foreground }]}>{score}</Text>
-      <View accessibilityLabel={label} style={{ width: 26, height: 26, borderRadius: 7, backgroundColor: tone + "20", alignItems: "center", justifyContent: "center" }}><Text style={{ color: tone, fontSize: 12, fontWeight: "700" }}>{result === "W" ? "V" : result === "L" ? "D" : result === "D" ? "E" : "—"}</Text></View>
-    </View>
-  </Pressable>;
-}
 
 function RosterPreview({ players, colors }: { players: ApiPlayer[]; colors: ReturnType<typeof useColors> }) { return <View style={[styles.roster, { backgroundColor: colors.card, borderColor: colors.border }]}>{players.slice(0, 5).map((player) => <View key={player.id} style={styles.rosterItem}><PlayerAvatar name={player.name} imageUrl={player.imageUrl} size={44} /><Text style={[styles.playerName, { color: colors.foreground }]}>{player.name}</Text></View>)}</View>; }
 function PlayerRow({ player, colors }: { player: ApiPlayer; colors: ReturnType<typeof useColors> }) { return <View style={[styles.playerRow, { backgroundColor: colors.card, borderColor: colors.border }]}><PlayerAvatar name={player.name} imageUrl={player.imageUrl} size={44} /><View style={{ flex: 1 }}><Text style={[styles.playerName, { color: colors.foreground }]}>{player.name}</Text>{player.fullName && player.fullName !== player.name ? <Text style={[styles.muted, { color: colors.mutedForeground }]}>{player.fullName}</Text> : null}</View>{player.country ? <Flag code={player.country} /> : null}</View>; }

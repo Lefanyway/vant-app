@@ -7,10 +7,16 @@ const API = "https://vlr.orlandomm.net/api/v1";
 type Listed = { id: string; teams: { name: string }[] };
 type VlrMap = { name?: string; status?: string; pickedBy?: string; teams?: { name: string; score?: number }[] };
 
-async function get<T>(path: string): Promise<T | null> {
-  const response = await fetch(`${API}${path}`, { headers: { Accept: "application/json" }, signal: AbortSignal.timeout(8_000) }).catch(() => null);
-  if (!response?.ok) return null;
-  return (await response.json() as { data?: T }).data ?? null;
+// Result pages are shared by every match opened in the next few minutes, so each is fetched once.
+const pages = new Map<string, { at: number; value: Promise<unknown> }>();
+function get<T>(path: string): Promise<T | null> {
+  const hit = pages.get(path);
+  if (hit && Date.now() - hit.at < 5 * 60_000) return hit.value as Promise<T | null>;
+  const value = fetch(`${API}${path}`, { headers: { Accept: "application/json" }, signal: AbortSignal.timeout(8_000) })
+    .then(async (response) => response.ok ? (await response.json() as { data?: T }).data ?? null : null)
+    .catch(() => null);
+  pages.set(path, { at: Date.now(), value });
+  return value;
 }
 
 // "LOUD" and "LOUD" or "Team Liquid Brazil" and "Liquid Brazil": same team when one name contains the other.

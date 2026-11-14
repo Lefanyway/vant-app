@@ -5,6 +5,7 @@ type RssItem = {
   link?: string;
   pubDate?: string;
   source?: string;
+  sourceUrl?: string;
   description?: string;
 };
 
@@ -34,6 +35,8 @@ function parseItems(xml: string): RssItem[] {
       link: tagValue(item, "link"),
       pubDate: tagValue(item, "pubDate"),
       source: tagValue(item, "source"),
+      // The publisher's own site: links go through news.google.com, so this is what tells the sources apart.
+      sourceUrl: item.match(/<source[^>]*\burl="([^"]+)"/i)?.[1],
       description: tagValue(item, "description"),
     };
   });
@@ -56,13 +59,29 @@ function repeatsTitle(summary: string, title: string, source?: string): boolean 
   return normalize(summary) === normalize(title);
 }
 
+// Brazilian Portuguese first (half the list when there is enough), then English, newest first within the list.
 export async function fetchTeamNews(teamName: string, limit: number): Promise<TeamNewsArticle[]> {
-  const query = `"${teamName}" esports`;
+  const [portuguese, english] = await Promise.allSettled([fetchEdition(teamName, limit, "pt"), fetchEdition(teamName, limit, "en")]);
+  const pt = portuguese.status === "fulfilled" ? portuguese.value : [];
+  const en = english.status === "fulfilled" ? english.value : [];
+  if (!pt.length && english.status === "rejected") throw english.reason;
+  const seen = new Set<string>();
+  const merged = [...pt.slice(0, Math.max(Math.ceil(limit / 2), limit - en.length)), ...en, ...pt].filter((article) => {
+    const key = article.title.toLowerCase().slice(0, 60);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+  return merged.slice(0, limit).sort((a, b) => Date.parse(b.publishedAt) - Date.parse(a.publishedAt));
+}
+
+async function fetchEdition(teamName: string, limit: number, language: "pt" | "en"): Promise<TeamNewsArticle[]> {
+  const query = `"${teamName}" ${language === "pt" ? "valorant" : "esports"}`;
   const url = new URL(GOOGLE_NEWS_RSS);
   url.searchParams.set("q", query);
-  url.searchParams.set("hl", "en-US");
-  url.searchParams.set("gl", "US");
-  url.searchParams.set("ceid", "US:en");
+  url.searchParams.set("hl", language === "pt" ? "pt-BR" : "en-US");
+  url.searchParams.set("gl", language === "pt" ? "BR" : "US");
+  url.searchParams.set("ceid", language === "pt" ? "BR:pt-419" : "US:en");
 
   const response = await fetch(url, {
     signal: AbortSignal.timeout(8_000),
@@ -91,6 +110,8 @@ export async function fetchTeamNews(teamName: string, limit: number): Promise<Te
       url: articleUrl.href,
       publishedAt: publishedAt.toISOString(),
       source,
+      sourceUrl: item.sourceUrl?.startsWith("https://") || item.sourceUrl?.startsWith("http://") ? item.sourceUrl : undefined,
+      language,
       summary: summary && !repeatsTitle(summary, item.title, source) ? summary : undefined,
     });
     if (articles.length >= limit) break;

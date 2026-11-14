@@ -80,7 +80,7 @@ router.get('/catalog', async (req, res, next) => {
   const q = typeof req.query.q === 'string' ? req.query.q.trim().slice(0, 100) : '';
   // Without a query the catalog lists who is playing around now, which changes during the day.
   const ttl = q ? ESPORTS_CACHE_TTL.teams : ESPORTS_CACHE_TTL.catalogFeatured;
-  try { return res.json(await cached('catalog:' + type + ':' + page + ':' + q.toLowerCase(), ttl, () => selected.getCatalogPage!(type, page, q))); } catch (error) { return next(error); }
+  try { return res.json(await cached('catalog-v2:' + type + ':' + page + ':' + q.toLowerCase(), ttl, () => selected.getCatalogPage!(type, page, q))); } catch (error) { return next(error); }
 });
 router.get("/games", async (_req, res, next) => { const selected = getConfiguredProvider(); if (!selected.provider) return res.json(games); try { return res.json(await cached("games", ESPORTS_CACHE_TTL.games, () => selected.provider!.getGames())); } catch (error) { return next(error); } });
 router.get("/matches/recent", async (req, res, next) => {
@@ -197,14 +197,14 @@ router.get("/teams/:id/roster", async (req, res, next) => {
 router.get("/teams/:id/stats", async (req, res, next) => {
   const selected = providerRequired(res); if (!selected) return;
   if (!selected.getTeamStats) return res.json({ stats: null, available: false, error: "Team stats unavailable" });
-  try { const stats = await cached(`team-stats:${req.params.id}:30d`, ESPORTS_CACHE_TTL.teamStats, () => selected.getTeamStats!(req.params.id, "30d")); return res.json({ stats, available: Boolean(stats) }); } catch (error) { return res.json({ stats: null, available: false, error: "Team stats unavailable" }); }
+  try { const stats = await cached(`team-stats-v2:${req.params.id}:30d`, ESPORTS_CACHE_TTL.teamStats, () => selected.getTeamStats!(req.params.id, "30d")); return res.json({ stats, available: Boolean(stats) }); } catch (error) { return res.json({ stats: null, available: false, error: "Team stats unavailable" }); }
 });
 router.get("/teams/:id/news", async (req, res, next) => {
   const selected = providerRequired(res); if (!selected) return;
   if (!selected.getTeamNews) return res.json({ articles: [], available: false, error: "Team news unavailable" });
   const limit = Math.min(20, Math.max(1, Number(req.query.limit) || 5));
   try {
-    const articles = await cached(`team-news:${req.params.id}:${limit}`, ESPORTS_CACHE_TTL.teamNews, () => selected.getTeamNews!(req.params.id, limit));
+    const articles = await cached(`team-news-v2:${req.params.id}:${limit}`, ESPORTS_CACHE_TTL.teamNews, () => selected.getTeamNews!(req.params.id, limit));
     return res.json({ articles, available: articles.length > 0 });
   } catch (error) { return res.json({ articles: [], available: false, error: "Team news unavailable" }); }
 });

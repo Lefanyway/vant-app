@@ -16,6 +16,8 @@ export type TeamStats = {
   averageRoundsWon?: number;
   mapWinRate?: number;
   elo?: number;
+  // Everything we can work out from the stored history, grouped for display ("Geral", "Mapas"...).
+  sections?: { title: string; rows: { label: string; value: string }[] }[];
 };
 export type TeamNewsArticle = {
   id: string;
@@ -23,6 +25,9 @@ export type TeamNewsArticle = {
   url: string;
   publishedAt: string;
   source: string;
+  // The publisher's own site, for its icon; links themselves go through Google News.
+  sourceUrl?: string;
+  language?: "pt" | "en";
   imageUrl?: string;
   summary?: string;
 };

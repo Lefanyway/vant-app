@@ -5,6 +5,8 @@ import { supabase } from "@/lib/supabase";
 export const onboardingKey = (userId?: string) => `vant:onboarded:${userId ?? "anon"}`;
 
 const DAY = 24 * 60 * 60_000;
+const SIDE = /(^|\s)(academy|female|fem|women|gc|youth|junior|jr|white|black)(\s|$)/i;
+const sideRoster = (name: string, acronym: string | null) => SIDE.test(name) || /\.[a-z0-9]+$/i.test(acronym ?? "");
 
 // The teams people know: strongest first by the model's Elo, only those that played in the last six months.
 // Read straight from the database (no provider call), so the list is ready the moment the step opens.
@@ -16,7 +18,8 @@ export async function popularTeams(): Promise<ApiSearchResult[]> {
   const byId = new Map((teams ?? []).map((team) => [team.id as string, team]));
   return ids.flatMap((id) => {
     const team = byId.get(id);
-    return team ? [{ type: "team" as const, id, name: team.name as string, acronym: team.acronym ?? undefined, logoUrl: absoluteLogo(team.logo_url ?? undefined), country: team.country ?? undefined, countryName: team.country === "BR" ? "Brasil" : undefined }] : [];
+    // Main rosters only here: academy, women's and youth teams are still a search away.
+    return team && !sideRoster(team.name as string, team.acronym as string | null) ? [{ type: "team" as const, id, name: team.name as string, acronym: team.acronym ?? undefined, logoUrl: absoluteLogo(team.logo_url ?? undefined), country: team.country ?? undefined, countryName: team.country === "BR" ? "Brasil" : undefined }] : [];
   });
 }
 

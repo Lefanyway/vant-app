@@ -119,8 +119,9 @@ function ExampleNotification() {
   </View>;
   return <View accessibilityLabel="Exemplo de aviso: fim de jogo, LOUD 2 a 1 FURIA" style={[styles.example, { backgroundColor: colors.card, borderColor: colors.border }]}>
     <View style={styles.exHead}>
-      <View style={[styles.exIcon, { backgroundColor: colors.primary }]}><Feather name="bell" size={11} color={colors.primaryForeground} /></View>
-      <Text style={[styles.exApp, { color: colors.mutedForeground }]}>VANT · agora</Text>
+      <View style={styles.exIcon}><Image source={mark} resizeMode="contain" style={styles.exMark} /></View>
+      <Text style={[styles.exApp, { color: colors.foreground }]}>VANT</Text>
+      <Text style={[styles.exTime, { color: colors.mutedForeground }]}>agora</Text>
     </View>
     <Text style={[styles.exEvent, { color: colors.foreground }]}>Fim de jogo · VCT Americas</Text>
     {side("LOUD", 2, false)}
@@ -136,8 +137,7 @@ function Alerts() {
     <Text style={[styles.title, { color: colors.foreground }]}>Não perca nenhum jogo</Text>
     <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>Avisamos quando uma partida dos seus times começa e quando termina, com o placar. Você escolhe quais times avisam no seu perfil.</Text>
     <ExampleNotification />
-    {Platform.OS === "web" ? <Text style={[styles.featureText, { color: colors.mutedForeground, textAlign: "center" }]}>No navegador, os avisos aparecem dentro do app, no sininho.</Text>
-      : <Pressable accessibilityRole="button" onPress={async () => setState(await ensurePermission() ? "on" : "off")} style={[styles.secondaryWide, { backgroundColor: colors.card }]}>
+    {Platform.OS === "web" ? null : <Pressable accessibilityRole="button" onPress={async () => setState(await ensurePermission() ? "on" : "off")} style={[styles.secondaryWide, { backgroundColor: colors.card }]}>
         <Feather name={state === "on" ? "check" : "bell"} size={18} color={state === "on" ? colors.positive : colors.foreground} />
         <Text style={[styles.choiceName, { color: colors.foreground }]}>{state === "on" ? "Avisos ativados" : state === "off" ? "Ative nas configurações do celular" : "Ativar avisos"}</Text>
       </Pressable>}
@@ -174,9 +174,11 @@ const styles = StyleSheet.create({
   choice: { minHeight: 60, borderRadius: 16, borderWidth: 1.5, paddingHorizontal: 12, marginBottom: 8, flexDirection: "row", alignItems: "center", gap: 12 },
   choiceName: { fontSize: 15, fontFamily: font.semibold },
   example: { alignSelf: "stretch", borderRadius: 20, borderWidth: 1, padding: 14, gap: 8, marginTop: 8 },
-  exHead: { flexDirection: "row", alignItems: "center", gap: 6 },
-  exIcon: { width: 18, height: 18, borderRadius: 5, alignItems: "center", justifyContent: "center" },
-  exApp: { fontSize: 12, fontFamily: font.medium },
+  exHead: { flexDirection: "row", alignItems: "center", gap: 8 },
+  exIcon: { width: 22, height: 22, borderRadius: 6, backgroundColor: "#050707", alignItems: "center", justifyContent: "center" },
+  exMark: { width: 14, height: 14 },
+  exApp: { flex: 1, fontSize: 13, fontFamily: font.semibold },
+  exTime: { fontSize: 12, fontFamily: font.regular },
   exEvent: { fontSize: 14, fontFamily: font.bold, marginBottom: 2 },
   exTeam: { flexDirection: "row", alignItems: "center", gap: 10 },
   exName: { flex: 1, fontSize: 15 },

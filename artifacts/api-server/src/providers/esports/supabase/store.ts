@@ -68,6 +68,16 @@ export class SupabaseStore {
     };
   }
 
+  // The teams people follow most: the 40 strongest active ones by Elo, plus every active Brazilian team.
+  async featuredTeamIds(): Promise<string[]> {
+    const since = encodeURIComponent(new Date(Date.now() - 180 * 86_400_000).toISOString());
+    const ranked = await this.rest<{ team_id: string }[]>(`team_elo?select=team_id&rated_at=gte.${since}&order=elo.desc&limit=300`);
+    const ids = ranked.map(row => row.team_id);
+    if (!ids.length) return [];
+    const brazil = await this.rest<{ id: string }[]>(`teams?select=id&country=eq.BR&id=in.(${ids.map(encodeURIComponent).join(',')})`);
+    return [...new Set([...ids.slice(0, 40), ...brazil.map(row => row.id)])];
+  }
+
   // Latest results with a team from one country (ISO code, such as "BR"), newest first.
   async recentByCountry(country: string, limit = 10): Promise<Match[]> {
     const code = encodeURIComponent(country.toUpperCase());
@@ -104,25 +114,78 @@ export class SupabaseStore {
   }
 
   // Results over the last days straight from stored matches, plus the model's current Elo for the team.
+  // Built from every stored match of the team (history since 2021): the provider's free plan has no team statistics.
   async teamStats(teamId: string, days = 30): Promise<TeamStats | null> {
-    const cutoff = new Date(Date.now() - days * 86_400_000).toISOString();
     const id = `"${teamId.replace(/"/g, '')}"`;
-    const params = new URLSearchParams({ select: 'home_team_id,away_team_id,home_score,away_score', status: 'eq.finished', start_time: `gte.${cutoff}`, or: `(home_team_id.eq.${id},away_team_id.eq.${id})` });
-    const [rows, elo] = await Promise.all([
-      this.rest<{ home_team_id: string; away_team_id: string; home_score: number | null; away_score: number | null }[]>(`matches?${params.toString()}`),
+    const params = new URLSearchParams({ select: 'home_team_id,away_team_id,home_score,away_score,best_of,start_time,competition_id', status: 'eq.finished', or: `(home_team_id.eq.${id},away_team_id.eq.${id})`, order: 'start_time.asc', limit: '2000' });
+    const since = encodeURIComponent(new Date(Date.now() - 180 * 86_400_000).toISOString());
+    const [rows, elo, ranking] = await Promise.all([
+      this.rest<{ home_team_id: string; away_team_id: string; home_score: number | null; away_score: number | null; best_of: number | null; start_time: string | null; competition_id: string | null }[]>(`matches?${params.toString()}`),
       this.rest<{ elo: number }[]>(`team_elo?select=elo&team_id=eq.${encodeURIComponent(teamId)}`),
+      this.rest<{ team_id: string }[]>(`team_elo?select=team_id&rated_at=gte.${since}&order=elo.desc&limit=1000`).catch(() => [] as { team_id: string }[]),
     ]);
-    let wins = 0, losses = 0, matches = 0;
-    for (const row of rows) {
-      if (row.home_score === null || row.away_score === null || row.home_score === row.away_score) continue;
-      matches++;
-      const own = row.home_team_id === teamId ? row.home_score : row.away_score;
-      const other = row.home_team_id === teamId ? row.away_score : row.home_score;
-      if (own > other) wins++; else losses++;
-    }
+    const cutoff = Date.now() - days * 86_400_000;
+    const games = rows.flatMap((row) => {
+      if (row.home_score === null || row.away_score === null || row.home_score === row.away_score) return [];
+      const home = row.home_team_id === teamId;
+      const own = home ? row.home_score : row.away_score;
+      const other = home ? row.away_score : row.home_score;
+      return [{ own, other, won: own > other, bestOf: row.best_of ?? 0, at: row.start_time ? Date.parse(row.start_time) : 0, competition: row.competition_id }];
+    });
     const rating = elo[0]?.elo;
-    if (!matches && rating === undefined) return null;
-    return { period: '30d', matches, wins, losses, ...(rating !== undefined ? { elo: Math.round(rating) } : {}) };
+    if (!games.length && rating === undefined) return null;
+    const recent = games.filter((game) => game.at >= cutoff);
+    const pct = (part: number, whole: number) => whole ? `${Math.round((part / whole) * 100)}%` : '—';
+    const record = (list: typeof games) => `${list.filter((game) => game.won).length}V · ${list.filter((game) => !game.won).length}D`;
+    const mapsWon = games.reduce((sum, game) => sum + game.own, 0);
+    const mapsLost = games.reduce((sum, game) => sum + game.other, 0);
+    let best = 0, worst = 0, run = 0;
+    for (const game of games) {
+      run = game.won ? Math.max(run, 0) + 1 : Math.min(run, 0) - 1;
+      best = Math.max(best, run);
+      worst = Math.min(worst, run);
+    }
+    const formats = [1, 3, 5].flatMap((bestOf) => {
+      const list = games.filter((game) => game.bestOf === bestOf);
+      return list.length ? [{ label: `Séries BO${bestOf}`, value: `${record(list)} (${pct(list.filter((game) => game.won).length, list.length)})` }] : [];
+    });
+    const wins = games.filter((game) => game.won);
+    const position = ranking.findIndex((row) => row.team_id === teamId);
+    const sections = [
+      { title: 'Geral', rows: [
+        { label: 'Partidas', value: String(games.length) },
+        { label: 'Vitórias', value: String(wins.length) },
+        { label: 'Derrotas', value: String(games.length - wins.length) },
+        { label: 'Aproveitamento', value: pct(wins.length, games.length) },
+        { label: 'Competições disputadas', value: String(new Set(games.map((game) => game.competition).filter(Boolean)).size) },
+        ...(games[0]?.at ? [{ label: 'Primeira partida registrada', value: new Date(games[0].at).getFullYear().toString() }] : []),
+      ] },
+      { title: 'Mapas', rows: [
+        { label: 'Mapas jogados', value: String(mapsWon + mapsLost) },
+        { label: 'Mapas vencidos', value: String(mapsWon) },
+        { label: 'Mapas perdidos', value: String(mapsLost) },
+        { label: 'Aproveitamento em mapas', value: pct(mapsWon, mapsWon + mapsLost) },
+        { label: 'Saldo de mapas', value: `${mapsWon - mapsLost > 0 ? '+' : ''}${mapsWon - mapsLost}` },
+        { label: 'Mapas por série (média)', value: games.length ? ((mapsWon + mapsLost) / games.length).toFixed(1).replace('.', ',') : '—' },
+      ] },
+      ...(formats.length ? [{ title: 'Por formato', rows: formats }] : []),
+      { title: 'Sequências', rows: [
+        { label: 'Sequência atual', value: run > 0 ? `${run} vitória${run > 1 ? 's' : ''}` : run < 0 ? `${-run} derrota${run < -1 ? 's' : ''}` : '—' },
+        { label: 'Maior sequência de vitórias', value: String(best) },
+        { label: 'Maior sequência de derrotas', value: String(-worst) },
+      ] },
+      { title: 'Domínio', rows: [
+        { label: 'Vitórias sem perder mapa', value: `${wins.filter((game) => game.other === 0 && game.bestOf > 1).length}` },
+        { label: 'Séries decididas no último mapa', value: `${games.filter((game) => game.bestOf > 1 && game.own + game.other === game.bestOf).length}` },
+        { label: 'Vencidas no último mapa', value: `${wins.filter((game) => game.bestOf > 1 && game.own + game.other === game.bestOf).length}` },
+      ] },
+      ...(rating !== undefined ? [{ title: 'Modelo VANT', rows: [
+        { label: 'Elo atual', value: String(Math.round(rating)) },
+        ...(position >= 0 ? [{ label: 'Posição no ranking', value: `${position + 1}º de ${ranking.length}` }] : []),
+      ] }] : []),
+    ];
+    const recentWins = recent.filter((game) => game.won).length;
+    return { period: '30d', matches: recent.length, wins: recentWins, losses: recent.length - recentWins, mapsPlayed: mapsWon + mapsLost, mapsWon, ...(rating !== undefined ? { elo: Math.round(rating) } : {}), sections };
   }
 
   // The span of time a backfill or window sync has already written, so an empty day there is truly empty.

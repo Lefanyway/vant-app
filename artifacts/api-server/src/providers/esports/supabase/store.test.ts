@@ -20,19 +20,27 @@ function fakeSupabase(t: test.TestContext, routes: Record<string, Route>) {
 
 const TEAM = "pandascore:42";
 
+const recent = (daysAgo: number) => new Date(Date.now() - daysAgo * 86_400_000).toISOString();
+
 test("counts wins and losses for the team, skipping draws and missing scores, and adds its Elo", async (t) => {
   const calls = fakeSupabase(t, {
     matches: () => [
-      { home_team_id: TEAM, away_team_id: "pandascore:1", home_score: 2, away_score: 0 },
-      { home_team_id: "pandascore:2", away_team_id: TEAM, home_score: 2, away_score: 1 },
-      { home_team_id: TEAM, away_team_id: "pandascore:3", home_score: 1, away_score: 1 },
-      { home_team_id: "pandascore:4", away_team_id: TEAM, home_score: null, away_score: null },
-      { home_team_id: "pandascore:5", away_team_id: TEAM, home_score: 0, away_score: 2 },
+      { home_team_id: TEAM, away_team_id: "pandascore:1", home_score: 2, away_score: 0, best_of: 3, start_time: recent(5), competition_id: "pandascore:7" },
+      { home_team_id: "pandascore:2", away_team_id: TEAM, home_score: 2, away_score: 1, best_of: 3, start_time: recent(4), competition_id: "pandascore:7" },
+      { home_team_id: TEAM, away_team_id: "pandascore:3", home_score: 1, away_score: 1, best_of: 3, start_time: recent(3), competition_id: "pandascore:7" },
+      { home_team_id: "pandascore:4", away_team_id: TEAM, home_score: null, away_score: null, best_of: 3, start_time: recent(2), competition_id: "pandascore:8" },
+      { home_team_id: "pandascore:5", away_team_id: TEAM, home_score: 0, away_score: 2, best_of: 3, start_time: recent(1), competition_id: "pandascore:8" },
     ],
     team_elo: () => [{ elo: 1612.6 }],
   });
   const stats = await new SupabaseStore("https://db.test", "publishable").teamStats(TEAM, 30);
-  assert.deepEqual(stats, { period: "30d", matches: 3, wins: 2, losses: 1, elo: 1613 });
+  assert.deepEqual({ period: stats!.period, matches: stats!.matches, wins: stats!.wins, losses: stats!.losses, elo: stats!.elo }, { period: "30d", matches: 3, wins: 2, losses: 1, elo: 1613 });
+  const value = (title: string, label: string) => stats!.sections!.find((section) => section.title === title)!.rows.find((row) => row.label === label)!.value;
+  assert.equal(value("Mapas", "Mapas jogados"), "7");
+  assert.equal(value("Mapas", "Saldo de mapas"), "+3");
+  assert.equal(value("Sequências", "Sequência atual"), "1 vitória");
+  assert.equal(value("Domínio", "Vencidas no último mapa"), "0");
+  assert.equal(value("Geral", "Competições disputadas"), "2");
   const matchesQuery = calls.find((call) => call.url.pathname.endsWith("/matches"))!.url;
   assert.equal(matchesQuery.searchParams.get("status"), "eq.finished");
   assert.match(matchesQuery.searchParams.get("or")!, /home_team_id\.eq\."pandascore:42"/);

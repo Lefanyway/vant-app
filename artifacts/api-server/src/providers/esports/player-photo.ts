@@ -4,7 +4,16 @@ const API = "https://liquipedia.net/valorant/api.php";
 const USER_AGENT = "VANT/1.0 (https://github.com/Lefanyway/vant_app)";
 const GAP_MS = 2_100;
 
-const found = new Map<string, string | null>();
+import { readFileSync } from "node:fs";
+import { mkdir, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import path from "node:path";
+
+// Found photos (and misses) survive API restarts, so a roster never goes back to initials.
+const store = path.join(process.env.LOGO_CACHE_DIR || path.join(tmpdir(), "vant-logos-v3"), "player-photos.json");
+const found = new Map<string, string | null>(Object.entries((() => { try { return JSON.parse(readFileSync(store, "utf8")) as Record<string, string | null>; } catch { return {}; } })()));
+let saving: Promise<void> = Promise.resolve();
+const save = () => { saving = saving.then(() => mkdir(path.dirname(store), { recursive: true })).then(() => writeFile(store, JSON.stringify(Object.fromEntries(found)))).catch(() => undefined); };
 let queue: Promise<unknown> = Promise.resolve();
 let last = 0;
 
@@ -37,7 +46,7 @@ export function playerPhoto(name: string): Promise<string | null> {
   const key = name.trim().toLowerCase();
   if (!key) return Promise.resolve(null);
   if (found.has(key)) return Promise.resolve(found.get(key)!);
-  const next = queue.then(() => found.has(key) ? found.get(key)! : lookup(name).catch(() => null)).then((url) => { found.set(key, url); return url; });
+  const next = queue.then(() => found.has(key) ? found.get(key)! : lookup(name).catch(() => null)).then((url) => { found.set(key, url); save(); return url; });
   queue = next.catch(() => undefined);
   return next;
 }

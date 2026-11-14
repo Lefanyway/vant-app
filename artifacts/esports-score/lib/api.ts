@@ -6,7 +6,7 @@ import type { Match, Team } from "@/lib/data";
 type ApiTeam = { id: string; name: string; acronym?: string; logoUrl?: string; country?: string; gameId: string };
 export type ApiPlayer = { id: string; name: string; fullName?: string; imageUrl?: string; imageCredit?: string; country?: string; role?: string; status?: "player" | "coach" | "staff" };
 export type ApiTeamDetails = ApiTeam & { website?: string; socials?: { platform: string; url: string }[]; roster?: ApiPlayer[] };
-export type TeamNewsArticle = { id: string; title: string; url: string; publishedAt: string; source: string; imageUrl?: string; summary?: string };
+export type TeamNewsArticle = { id: string; title: string; url: string; publishedAt: string; source: string; sourceUrl?: string; language?: "pt" | "en"; imageUrl?: string; summary?: string };
 export type TeamNewsResult = { articles: TeamNewsArticle[]; available: boolean; error?: string };
 export type ApiCompetition = { id: string; name: string; region?: string; serieName?: string; logoUrl?: string; gameId?: string };
 type ApiMatch = { id: string; gameId: string; competition: ApiCompetition; homeTeam: ApiTeam; awayTeam: ApiTeam; startTime: string | null; scheduledTime?: string | null; status: "scheduled" | "live" | "finished" | "cancelled" | "postponed"; bestOf?: 1 | 3 | 5; homeScore?: number; awayScore?: number; streams?: { url: string; language?: string; official?: boolean }[]; games?: MatchGame[] };
@@ -185,7 +185,7 @@ export type TeamOverview = {
   recentForm: ("W" | "L" | "D")[];
   capabilities: { overview: true; matches: boolean; roster: boolean; stats: boolean; news: boolean };
 };
-export type TeamStatsResult = { stats: { period: "30d"; matches: number; wins: number; losses: number; mapsPlayed?: number; mapsWon?: number; mapWinRate?: number; elo?: number } | null; available: boolean; error?: string };
+export type TeamStatsResult = { stats: { period: "30d"; matches: number; wins: number; losses: number; mapsPlayed?: number; mapsWon?: number; mapWinRate?: number; elo?: number; sections?: { title: string; rows: { label: string; value: string }[] }[] } | null; available: boolean; error?: string };
 export type TeamMatchesResult = { matches: ApiMatch[]; hasMore: boolean };
 
 const playerPhoto = (player: ApiPlayer): ApiPlayer => ({ ...player, imageUrl: absoluteLogo(player.imageUrl) });

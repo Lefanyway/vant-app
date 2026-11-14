@@ -1,4 +1,5 @@
 import { warmLogos } from '../logo-store';
+import { playerPhoto } from '../player-photo';
 import { logger } from '../../../lib/logger';
 import { PandaScoreAdapter, mapPlayer, type RawMatch, type RawTeam } from '../pandascore/adapter';
 import { PandaScoreClient } from '../pandascore/client';
@@ -43,8 +44,22 @@ export class SupabaseSync {
     setInterval(tick, TICK_MS).unref();
   }
 
+  // Once per process: photos for the rosters people look at most (strongest teams and Brazilian ones), in the background.
+  private photosWarmed = false;
+  private async warmPhotos() {
+    if (this.photosWarmed || process.env.CI) return;
+    this.photosWarmed = true;
+    const ids = await this.store.featuredTeamIds().catch(() => [] as string[]);
+    for (let index = 0; index < ids.length; index += 100) {
+      const chunk = ids.slice(index, index + 100).map(id => id.replace('pandascore:', ''));
+      const teams = await this.client.request<RawTeam[]>('/valorant/teams', { 'filter[id]': chunk.join(','), per_page: 100 }).catch(() => [] as RawTeam[]);
+      for (const team of Array.isArray(teams) ? teams : []) for (const raw of team.players ?? []) if (!raw.image_url && raw.name) void playerPhoto(raw.name);
+    }
+  }
+
   async runOnce() {
     const now = Date.now();
+    void this.warmPhotos().catch(() => undefined);
     // Recent days and the coming two weeks change often: scores, reschedules, new matches.
     await this.syncRange(now - 2 * DAY, now + AHEAD_DAYS * DAY, 'window');
     const live = await this.client.request<RawMatch[]>('/valorant/matches/running', { per_page: 100 });

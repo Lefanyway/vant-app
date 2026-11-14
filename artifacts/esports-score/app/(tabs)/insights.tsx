@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
   teamLine: { flexDirection: "row", alignItems: "center", gap: 8 },
   teamName: { flex: 1, minWidth: 0, fontSize: 14, fontFamily: font.semibold },
   chance: { width: 44, textAlign: "right", fontSize: 14, fontVariant: ["tabular-nums"] },
-  why: { flexDirection: "row", alignItems: "center", gap: 6, paddingLeft: 86, paddingBottom: 12, marginTop: -4 },
+  why: { alignSelf: "flex-start", minHeight: 36, flexDirection: "row", alignItems: "center", gap: 6, marginLeft: 86, marginBottom: 8, paddingRight: 8 },
   badge: { fontSize: 11, fontFamily: font.semibold, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10, overflow: "hidden" },
   whyText: { fontSize: 12, fontFamily: font.semibold, marginLeft: 4 },
   whyBody: { paddingBottom: 14 },

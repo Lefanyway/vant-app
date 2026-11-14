@@ -202,8 +202,6 @@ export async function fetchTeamNews(id: string, limit = 5) { return request<Team
 export async function fetchTeamMatches(id: string, filter: "all" | "upcoming" | "finished", page = 1) {
   return request<TeamMatchesResult>(`/teams/${encodeURIComponent(id)}/matches?filter=${filter}&page=${page}&per_page=20`);
 }
-// A photo for a player the provider has none for (looked up on Liquipedia by the API).
-export async function fetchPlayerPhoto(name: string) { const result = await request<{ imageUrl: string | null; credit: string | null }>(`/players/photo?name=${encodeURIComponent(name)}`); return { ...result, imageUrl: absoluteLogo(result.imageUrl ?? undefined) }; }
 export async function fetchTeamRoster(id: string) { return (await request<ApiPlayer[]>(`/teams/${encodeURIComponent(id)}/roster`)).map(playerPhoto); }
 export async function fetchTeamStats(id: string) { return request<TeamStatsResult>(`/teams/${encodeURIComponent(id)}/stats`); }
 export function toApiTeam(value: ApiTeamDetails): Team { return toTeam(value); }

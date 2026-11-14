@@ -194,12 +194,6 @@ router.get("/teams/:id/roster", async (req, res, next) => {
     return res.json(withPhotos(team.roster ?? []));
   } catch (error) { return next(error); }
 });
-// A single player's photo, waiting for the lookup: the player page asks for it once.
-router.get("/players/photo", async (req, res, next) => {
-  const name = typeof req.query.name === "string" ? req.query.name.trim().slice(0, 40) : "";
-  if (!name) return res.status(400).json({ error: "Missing player name" });
-  try { const url = await playerPhoto(name); return res.json({ imageUrl: url ? proxied(url) : null, credit: url ? "Liquipedia" : null }); } catch (error) { return next(error); }
-});
 router.get("/teams/:id/stats", async (req, res, next) => {
   const selected = providerRequired(res); if (!selected) return;
   if (!selected.getTeamStats) return res.json({ stats: null, available: false, error: "Team stats unavailable" });

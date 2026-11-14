@@ -39,7 +39,6 @@ function RootLayoutNav() {
           <Stack.Screen name="profile" options={{ headerShown: false }} />
           <Stack.Screen name="notifications" options={{ headerShown: false }} />
           <Stack.Screen name="favorites/add" options={{ headerShown: false }} />
-          <Stack.Screen name="players/[id]" options={{ headerShown: false }} />
           <Stack.Screen name="onboarding" options={{ headerShown: false, gestureEnabled: false }} />
         </Stack.Protected>
         <Stack.Protected guard={!signedIn} redirectTo="/">

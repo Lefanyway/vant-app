@@ -105,14 +105,14 @@ export default function Picks() {
     <MobileHeader><ScreenTabs items={[{ key: "play", label: "Palpitar" }, { key: "league", label: "Liga" }]} selected={tab} onChange={setTab} /></MobileHeader>
     <ScrollView contentContainerStyle={{ paddingHorizontal: 12, paddingTop: 12, paddingBottom: 110 + insets.bottom }}>
       <View style={[styles.hero, { backgroundColor: colors.card }]}>
-        <Stat icon="🔥" value={String(streak)} label={"acertos\nseguidos"} />
-        <Stat icon="⭐" value={String(points)} label={"pontos\nsomados"} />
-        <Stat icon="🏆" value={rank >= 0 ? `${rank + 1}º` : "–"} label={"sua posição\nna liga"} />
+        <Stat icon="🔥" value={String(streak)} label="sequência" />
+        <Stat icon="⭐" value={String(points)} label="pontos" />
+        <Stat icon="🏆" value={rank >= 0 ? `${rank + 1}º` : "–"} label="na liga" />
       </View>
       <Tap accessibilityRole="button" onPress={() => { buzz(); setGuide(true); }} style={[styles.howButton, { backgroundColor: colors.card }]}>
-        <Feather name="help-circle" size={20} color={colors.primary} />
+        <Feather name="help-circle" size={17} color={colors.primary} />
         <Text style={[styles.howText, { color: colors.foreground }]}>Como funcionam os palpites?</Text>
-        <Feather name="chevron-right" size={20} color={colors.mutedForeground} />
+        <Feather name="chevron-right" size={17} color={colors.mutedForeground} />
       </Tap>
 
       {tab === "play" ? <>
@@ -158,7 +158,7 @@ function Ranking({ title, rows }: { title: string; rows: Rank[] }) {
       const ahead = rows[index - 1];
       return <Appear key={row.id} index={index}><View style={[styles.rankRow, row.me && { backgroundColor: colors.accent }]}>
         <Text style={[styles.place, { color: colors.mutedForeground }]}>{["🥇", "🥈", "🥉"][index] ?? `${index + 1}º`}</Text>
-        <Avatar id={row.avatar} name={row.name} size={44} />
+        <Avatar id={row.avatar} name={row.name} size={32} />
         <View style={styles.rankCopy}>
           <Text numberOfLines={1} style={[styles.rankName, { color: colors.foreground }]}>{row.me ? `${row.name} (você)` : row.name}</Text>
           {row.me && ahead ? <Text style={[styles.rankHint, { color: colors.primary }]}>Faltam {ahead.points - row.points + 1} pontos para passar {ahead.name}</Text> : null}
@@ -197,14 +197,14 @@ function PickCard({ match, homeChance, saved, split, onConfirm }: { match: Match
     const chance = homeChance === null ? null : side === 0 ? homeChance : 1 - homeChance;
     return <View style={styles.side}>
       <Tap accessibilityRole="button" accessibilityLabel={`${info.name} vence`} disabled={!editing} onPress={() => set(side, need)} style={styles.sideTeam}>
-        <ResolvedLogo type="team" name={info.name} entityId={info.id} logoUrl={info.logoUrl} size={52} />
+        <ResolvedLogo type="team" name={info.name} entityId={info.id} logoUrl={info.logoUrl} size={40} />
         <Text numberOfLines={1} style={[styles.teamName, { color: colors.foreground }]}>{listTeamLabel(info, 12)}</Text>
         {chance !== null ? <Text style={[styles.chance, { color: colors.mutedForeground }]}>Chance {percent(chance)}</Text> : null}
       </Tap>
       {editing ? <View style={[styles.stepper, { backgroundColor: colors.secondary }]}>
-        <Tap accessibilityRole="button" accessibilityLabel={`Menos um mapa para ${info.name}`} disabled={draft[side] === 0} onPress={() => set(side, draft[side] - 1)} style={styles.stepButton}><Feather name="minus" size={22} color={draft[side] === 0 ? colors.border : colors.foreground} /></Tap>
+        <Tap accessibilityRole="button" accessibilityLabel={`Menos um mapa para ${info.name}`} disabled={draft[side] === 0} onPress={() => set(side, draft[side] - 1)} style={styles.stepButton}><Feather name="minus" size={16} color={draft[side] === 0 ? colors.border : colors.foreground} /></Tap>
         <RollingNumber value={draft[side]} style={[styles.stepValue, { color: colors.foreground }]} />
-        <Tap accessibilityRole="button" accessibilityLabel={`Mais um mapa para ${info.name}`} disabled={draft[side] === need} onPress={() => set(side, draft[side] + 1)} style={styles.stepButton}><Feather name="plus" size={22} color={draft[side] === need ? colors.border : colors.foreground} /></Tap>
+        <Tap accessibilityRole="button" accessibilityLabel={`Mais um mapa para ${info.name}`} disabled={draft[side] === need} onPress={() => set(side, draft[side] + 1)} style={styles.stepButton}><Feather name="plus" size={16} color={draft[side] === need ? colors.border : colors.foreground} /></Tap>
       </View> : <Text style={[styles.finalScore, { color: draft[side] === need ? colors.primary : colors.mutedForeground }]}>{draft[side]}</Text>}
     </View>;
   };
@@ -218,7 +218,7 @@ function PickCard({ match, homeChance, saved, split, onConfirm }: { match: Match
       <Text style={[styles.confirmText, { color: valid ? colors.primaryForeground : colors.mutedForeground }]}>{valid ? `Confirmar ${listTeamLabel(winner, 12)} ${draft[0]} x ${draft[1]}` : `Quem vence faz ${need} ${need === 1 ? "mapa" : "mapas"}`}</Text>
     </Tap> : <Animated.View entering={FadeIn.duration(260)} style={styles.done}>
       <View style={styles.doneRow}>
-        <Pop active={!editing} color={colors.primary}><Feather name="check-circle" size={20} color={colors.primary} /></Pop>
+        <Pop active={!editing} color={colors.primary}><Feather name="check-circle" size={16} color={colors.primary} /></Pop>
         <Text style={[styles.doneText, { color: colors.foreground }]}>Palpite feito</Text>
         <Tap accessibilityRole="button" onPress={() => { buzz(); setEditing(true); }} style={[styles.change, { backgroundColor: colors.secondary }]}><Text style={[styles.changeText, { color: colors.foreground }]}>Mudar</Text></Tap>
       </View>
@@ -239,7 +239,7 @@ function Bar({ value }: { value: number }) {
 
 // How it works: one idea per page, a big picture and one line, like a quick tutorial.
 const steps = [
-  { icon: "✍️", title: "Monte o placar de cada jogo", points: "Use o – e o +" },
+  { icon: "✍️", title: "Monte o placar", points: "Use – e +" },
   { icon: "✅", title: "Acertou quem vence", points: `+${HIT_POINTS} pontos` },
   { icon: "🎯", title: "Cravou o placar", points: `+${HIT_POINTS + EXACT_BONUS} pontos` },
   { icon: "🏆", title: "Passe seus amigos na liga", points: "Toda semana" },
@@ -289,58 +289,59 @@ function Celebration({ wins, streak, onClose }: { wins: Graded[]; streak: number
   </Animated.View>;
 }
 
+// Same measures as the rest of the app (cards like UpcomingCard, Sofascore-style): compact, quiet, minimal.
 const styles = StyleSheet.create({
-  hero: { flexDirection: "row", borderRadius: 24, paddingVertical: 18, marginBottom: 10 },
-  stat: { flex: 1, alignItems: "center", gap: 2 },
-  statIcon: { fontSize: 26 },
-  statValue: { fontSize: 30, fontFamily: font.bold, fontVariant: ["tabular-nums"] },
-  statLabel: { fontSize: 13, lineHeight: 17, textAlign: "center" },
-  howButton: { flexDirection: "row", alignItems: "center", gap: 10, minHeight: 54, borderRadius: 18, paddingHorizontal: 16, marginBottom: 12 },
-  howText: { flex: 1, fontSize: 16, fontFamily: font.semibold },
-  day: { fontSize: 18, fontFamily: font.bold, marginTop: 18, marginBottom: 10 },
-  card: { borderRadius: 24, borderWidth: 1.5, padding: 16, marginBottom: 12, gap: 14 },
+  hero: { flexDirection: "row", borderRadius: 18, paddingVertical: 12, marginBottom: 8 },
+  stat: { flex: 1, alignItems: "center", gap: 1 },
+  statIcon: { fontSize: 16 },
+  statValue: { fontSize: 18, fontFamily: font.bold, fontVariant: ["tabular-nums"] },
+  statLabel: { fontSize: 11, textAlign: "center" },
+  howButton: { flexDirection: "row", alignItems: "center", gap: 8, minHeight: 44, borderRadius: 14, paddingHorizontal: 14, marginBottom: 4 },
+  howText: { flex: 1, fontSize: 14, fontFamily: font.medium },
+  day: { fontSize: 15, fontFamily: font.semibold, marginTop: 16, marginBottom: 9 },
+  card: { borderRadius: 18, borderWidth: 1, padding: 14, marginBottom: 10, gap: 12 },
   cardTop: { flexDirection: "row", alignItems: "center", gap: 8 },
-  competition: { flex: 1, fontSize: 14, fontFamily: font.semibold },
-  time: { fontSize: 15, fontFamily: font.bold, fontVariant: ["tabular-nums"] },
+  competition: { flex: 1, fontSize: 12, fontFamily: font.semibold },
+  time: { fontSize: 13, fontFamily: font.semibold, fontVariant: ["tabular-nums"] },
   teams: { flexDirection: "row", alignItems: "center", gap: 6 },
-  side: { flex: 1, minWidth: 0, alignItems: "center", gap: 10 },
-  sideTeam: { alignSelf: "stretch", alignItems: "center", gap: 6 },
-  stepper: { flexDirection: "row", alignItems: "center", borderRadius: 26, padding: 4 },
-  stepButton: { width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center" },
-  stepValue: { width: 40, fontSize: 28, fontFamily: font.bold, textAlign: "center", fontVariant: ["tabular-nums"] },
-  finalScore: { fontSize: 40, fontFamily: font.bold, fontVariant: ["tabular-nums"] },
-  confirm: { height: 54, borderRadius: 27, alignItems: "center", justifyContent: "center", paddingHorizontal: 16 },
-  confirmText: { fontSize: 16, fontFamily: font.bold },
-  done: { gap: 10 },
-  doneRow: { flexDirection: "row", alignItems: "center", gap: 8 },
-  doneText: { flex: 1, fontSize: 16, fontFamily: font.bold },
-  change: { paddingHorizontal: 16, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center" },
-  changeText: { fontSize: 14, fontFamily: font.semibold },
-  teamName: { fontSize: 17, fontFamily: font.bold },
-  chance: { fontSize: 13, fontFamily: font.medium },
-  vs: { fontSize: 18, fontFamily: font.bold, marginTop: 70 },
-  bar: { height: 10, borderRadius: 5, overflow: "hidden" },
-  barFill: { height: 10, borderRadius: 5 },
-  crowd: { fontSize: 14, fontFamily: font.medium, textAlign: "center" },
-  empty: { fontSize: 16, textAlign: "center", paddingVertical: 32, paddingHorizontal: 24 },
-  rankCard: { borderRadius: 24, padding: 12, marginBottom: 12 },
-  rankTitle: { fontSize: 18, fontFamily: font.bold, paddingHorizontal: 6, paddingTop: 4, paddingBottom: 8 },
-  rankRow: { flexDirection: "row", alignItems: "center", gap: 12, minHeight: 64, borderRadius: 18, paddingHorizontal: 8 },
-  place: { width: 34, fontSize: 20, fontFamily: font.bold, textAlign: "center" },
+  side: { flex: 1, minWidth: 0, alignItems: "center", gap: 8 },
+  sideTeam: { alignSelf: "stretch", alignItems: "center", gap: 5 },
+  stepper: { flexDirection: "row", alignItems: "center", borderRadius: 18, padding: 2 },
+  stepButton: { width: 32, height: 32, borderRadius: 16, alignItems: "center", justifyContent: "center" },
+  stepValue: { width: 28, fontSize: 17, fontFamily: font.bold, textAlign: "center", fontVariant: ["tabular-nums"] },
+  finalScore: { fontSize: 22, fontFamily: font.bold, fontVariant: ["tabular-nums"] },
+  confirm: { height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center", paddingHorizontal: 14 },
+  confirmText: { fontSize: 13, fontFamily: font.semibold },
+  done: { gap: 8 },
+  doneRow: { flexDirection: "row", alignItems: "center", gap: 6 },
+  doneText: { flex: 1, fontSize: 13, fontFamily: font.semibold },
+  change: { paddingHorizontal: 12, height: 28, borderRadius: 14, alignItems: "center", justifyContent: "center" },
+  changeText: { fontSize: 12, fontFamily: font.semibold },
+  teamName: { fontSize: 13, fontFamily: font.bold },
+  chance: { fontSize: 11 },
+  vs: { fontSize: 12, fontFamily: font.bold, marginTop: 52 },
+  bar: { height: 6, borderRadius: 3, overflow: "hidden" },
+  barFill: { height: 6, borderRadius: 3 },
+  crowd: { fontSize: 12, textAlign: "center" },
+  empty: { fontSize: 14, textAlign: "center", paddingVertical: 32, paddingHorizontal: 24 },
+  rankCard: { borderRadius: 18, paddingHorizontal: 10, paddingVertical: 8, marginBottom: 10 },
+  rankTitle: { fontSize: 15, fontFamily: font.semibold, paddingHorizontal: 6, paddingTop: 4, paddingBottom: 4 },
+  rankRow: { flexDirection: "row", alignItems: "center", gap: 10, minHeight: 50, borderRadius: 12, paddingHorizontal: 6 },
+  place: { width: 26, fontSize: 14, fontFamily: font.semibold, textAlign: "center" },
   rankCopy: { flex: 1, minWidth: 0 },
-  rankName: { fontSize: 16, fontFamily: font.semibold },
-  rankHint: { fontSize: 13, fontFamily: font.medium, marginTop: 2 },
-  rankPoints: { fontSize: 18, fontFamily: font.bold, fontVariant: ["tabular-nums"] },
-  reset: { fontSize: 14, textAlign: "center", marginTop: 4 },
-  overlay: { backgroundColor: "rgba(0,0,0,0.6)", alignItems: "center", justifyContent: "center", padding: 20 },
-  sheet: { width: "100%", maxWidth: 380, borderRadius: 28, padding: 24, gap: 14 },
-  center: { alignItems: "center", gap: 6 },
-  bigEmoji: { fontSize: 72 },
-  dots: { flexDirection: "row", gap: 6, marginTop: 10 },
-  dot: { height: 8, borderRadius: 4 },
-  sheetTitle: { fontSize: 24, fontFamily: font.bold, textAlign: "center" },
-  sheetPoints: { fontSize: 22, fontFamily: font.bold, fontVariant: ["tabular-nums"] },
-  sheetStreak: { fontSize: 16 },
-  sheetButton: { alignSelf: "stretch", height: 54, borderRadius: 27, alignItems: "center", justifyContent: "center", marginTop: 8 },
-  sheetButtonText: { fontSize: 17, fontFamily: font.bold },
+  rankName: { fontSize: 14, fontFamily: font.semibold },
+  rankHint: { fontSize: 11, marginTop: 1 },
+  rankPoints: { fontSize: 14, fontFamily: font.bold, fontVariant: ["tabular-nums"] },
+  reset: { fontSize: 12, textAlign: "center", marginTop: 2 },
+  overlay: { backgroundColor: "rgba(0,0,0,0.6)", alignItems: "center", justifyContent: "center", padding: 24 },
+  sheet: { width: "100%", maxWidth: 340, borderRadius: 22, padding: 20, gap: 12 },
+  center: { alignItems: "center", gap: 4 },
+  bigEmoji: { fontSize: 40, marginBottom: 4 },
+  dots: { flexDirection: "row", gap: 5, marginTop: 8 },
+  dot: { height: 6, borderRadius: 3 },
+  sheetTitle: { fontSize: 18, fontFamily: font.bold, textAlign: "center" },
+  sheetPoints: { fontSize: 14, fontFamily: font.semibold, fontVariant: ["tabular-nums"] },
+  sheetStreak: { fontSize: 13 },
+  sheetButton: { alignSelf: "stretch", height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center", marginTop: 6 },
+  sheetButtonText: { fontSize: 14, fontFamily: font.semibold },
 });

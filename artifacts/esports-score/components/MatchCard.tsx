@@ -1,4 +1,5 @@
 import { RollingNumber, Tap } from "@/components/Motion";
+import { warmMatch } from "@/lib/navigation";
 import { useSpoilers } from "@/context/SpoilerContext";
 import { useEffect, useRef, useState } from "react";
 import { AccessibilityInfo, Animated, Platform, StyleSheet, Text, View } from "react-native";
@@ -55,6 +56,7 @@ export function MatchCard({ match, onPress, showDay = false }: { match: Match; o
         testID={`match-${match.id}`}
         accessibilityRole="button"
         accessibilityLabel={`${match.teamA.name} contra ${match.teamB.name}, ${status}`}
+        onPressIn={() => warmMatch(match.id, match)}
         onPress={onPress}
         style={styles.main}
       >

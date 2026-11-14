@@ -4,7 +4,7 @@ import { ResolvedLogo } from "@/components/ResolvedLogo";
 import { useColors } from "@/hooks/useColors";
 import type { Match } from "@/lib/data";
 import { listTeamLabel } from "@/lib/matches";
-import { openMatch } from "@/lib/navigation";
+import { openMatch, warmMatch } from "@/lib/navigation";
 
 const statusLabel = (match: Match) => match.status === "Live" ? "Ao vivo" : match.status === "Postponed" ? "Adiada" : match.status === "Cancelled" ? "Cancelada" : "Agendada";
 
@@ -13,7 +13,7 @@ export function UpcomingCard({ match }: { match: Match }) {
   const colors = useColors();
   const start = match.startTime ? new Date(match.scheduledTime ?? match.startTime) : null;
   const live = match.status === "Live";
-  return <Appear><Tap accessibilityRole="button" accessibilityLabel={`${match.teamA.name} contra ${match.teamB.name}, ${start ? start.toLocaleString("pt-BR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "data a definir"}`} onPress={() => openMatch(match.id, match)} style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+  return <Appear><Tap accessibilityRole="button" accessibilityLabel={`${match.teamA.name} contra ${match.teamB.name}, ${start ? start.toLocaleString("pt-BR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "data a definir"}`} onPressIn={() => warmMatch(match.id, match)} onPress={() => openMatch(match.id, match)} style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
     <Text numberOfLines={1} style={[styles.competition, { color: colors.mutedForeground }]}>{match.stage && !match.tournament.includes(match.stage) ? `${match.tournament} · ${match.stage}` : match.tournament}</Text>
     <View style={styles.body}>
       <View style={styles.when}>

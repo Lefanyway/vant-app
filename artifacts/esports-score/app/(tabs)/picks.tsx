@@ -7,7 +7,7 @@ import Animated, { FadeIn, useAnimatedStyle, useSharedValue, withTiming } from "
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Avatar } from "@/components/Avatar";
 import { ListSkeleton, MobileHeader, ScreenTabs } from "@/components/MobileChrome";
-import { Appear, buzz, Confetti, Pop, RollingNumber, Tap } from "@/components/Motion";
+import { Appear, buzz, Confetti, Pop, Tap } from "@/components/Motion";
 import { Explainer } from "@/components/ModelExplainer";
 import { ResolvedLogo } from "@/components/ResolvedLogo";
 import { font } from "@/constants/type";
@@ -193,7 +193,7 @@ function PickCard({ match, homeChance, saved, split, onConfirm }: { match: Match
       </Tap>
       {editing ? <View style={[styles.stepper, { backgroundColor: colors.secondary }]}>
         <Tap accessibilityRole="button" accessibilityLabel={`Menos um mapa para ${info.name}`} disabled={draft[side] === 0} onPress={() => set(side, draft[side] - 1)} style={styles.stepButton}><Feather name="minus" size={16} color={draft[side] === 0 ? colors.border : colors.foreground} /></Tap>
-        <RollingNumber value={draft[side]} style={[styles.stepValue, { color: colors.foreground }]} />
+        <Text style={[styles.stepValue, { color: colors.foreground }]}>{draft[side]}</Text>
         <Tap accessibilityRole="button" accessibilityLabel={`Mais um mapa para ${info.name}`} disabled={draft[side] === need} onPress={() => set(side, draft[side] + 1)} style={styles.stepButton}><Feather name="plus" size={16} color={draft[side] === need ? colors.border : colors.foreground} /></Tap>
       </View> : <Text style={[styles.finalScore, { color: draft[side] === need ? colors.primary : colors.mutedForeground }]}>{draft[side]}</Text>}
     </View>;

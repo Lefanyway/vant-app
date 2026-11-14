@@ -1,12 +1,12 @@
 import * as Haptics from "expo-haptics";
 import { type ReactNode, useEffect, useRef } from "react";
 import { Dimensions, Platform, Pressable, StyleSheet, View, type PressableProps, type PressableStateCallbackType, type StyleProp, type TextStyle, type ViewStyle } from "react-native";
-import Animated, { FadeInDown, SlideInDown, useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming } from "react-native-reanimated";
+import Animated, { FadeIn, FadeInDown, useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming } from "react-native-reanimated";
 
 // The app's small motions, kept quick so they feel alive without getting in the way:
 // a card slides up a few pixels and fades in as it arrives, the first ones one after another,
 export function Appear({ index = 0, children, style }: { index?: number; children: ReactNode; style?: StyleProp<ViewStyle> }) {
-  return <Animated.View entering={FadeInDown.duration(260).delay(Math.min(index, 6) * 45)} style={style}>{children}</Animated.View>;
+  return <Animated.View entering={FadeInDown.duration(200).delay(Math.min(index, 5) * 30)} style={style}>{children}</Animated.View>;
 }
 
 // anything tappable shrinks slightly under the finger,
@@ -19,7 +19,7 @@ const soft = { damping: 14, stiffness: 260, mass: 0.6 };
 export function Tap({ style, children, ...props }: Omit<PressableProps, "style"> & { style?: StyleProp<ViewStyle> }) {
   const scale = useSharedValue(1);
   const anim = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
-  return <AnimatedPressable {...props} onPressIn={(event) => { scale.value = withSpring(0.95, soft); props.onPressIn?.(event); }} onPressOut={(event) => { scale.value = withSpring(1, soft); props.onPressOut?.(event); }} style={[style, anim]}>{children}</AnimatedPressable>;
+  return <AnimatedPressable {...props} onPressIn={(event) => { scale.value = withSpring(0.97, soft); props.onPressIn?.(event); }} onPressOut={(event) => { scale.value = withSpring(1, soft); props.onPressOut?.(event); }} style={[style, anim]}>{children}</AnimatedPressable>;
 }
 
 // the phone gives a light tap only at the moments that matter (follow, a live map ends, a win),
@@ -59,13 +59,13 @@ function Spark({ angle, color, burst }: { angle: number; color: string; burst: {
 export function RollingNumber({ value, style }: { value: number | string; style?: StyleProp<TextStyle> }) {
   const mounted = useRef(false);
   useEffect(() => { mounted.current = true; }, []);
-  return <View style={styles.roll}><Animated.Text key={String(value)} entering={mounted.current ? SlideInDown.duration(280) : undefined} style={style}>{value}</Animated.Text></View>;
+  return <View style={styles.roll}><Animated.Text key={String(value)} entering={mounted.current ? FadeIn.duration(140) : undefined} style={style}>{value}</Animated.Text></View>;
 }
 
 // an on/off toggle whose white knob glides across with a soft spring (the same on every phone and the web),
 export function Toggle({ value, onChange, onColor, offColor, label }: { value: boolean; onChange: (next: boolean) => void; onColor: string; offColor: string; label: string }) {
   const x = useSharedValue(value ? 1 : 0);
-  useEffect(() => { x.value = withSpring(value ? 1 : 0, { damping: 15, stiffness: 180 }); }, [value, x]);
+  useEffect(() => { x.value = withTiming(value ? 1 : 0, { duration: 160 }); }, [value, x]);
   const knob = useAnimatedStyle(() => ({ transform: [{ translateX: x.value * 20 }] }));
   return <Pressable accessibilityRole="switch" accessibilityLabel={label} accessibilityState={{ checked: value }} hitSlop={8} onPress={() => { buzz(); onChange(!value); }} style={[styles.track, { backgroundColor: value ? onColor : offColor }]}>
     <Animated.View style={[styles.knob, knob]} />
@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
   pop: { alignItems: "center", justifyContent: "center" },
   spark: { position: "absolute", width: 5, height: 5, borderRadius: 3 },
   roll: { overflow: "hidden" },
-  track: { width: 50, height: 30, borderRadius: 15, padding: 2, justifyContent: "center" },
-  knob: { width: 26, height: 26, borderRadius: 13, backgroundColor: "#FFFFFF", shadowColor: "#000", shadowOpacity: 0.2, shadowRadius: 2, shadowOffset: { width: 0, height: 1 }, elevation: 2 },
+  track: { width: 50, height: 30, borderRadius: 15, overflow: "hidden" },
+  knob: { position: "absolute", top: 2, left: 2, width: 26, height: 26, borderRadius: 13, backgroundColor: "#FFFFFF", shadowColor: "#000", shadowOpacity: 0.2, shadowRadius: 2, shadowOffset: { width: 0, height: 1 }, elevation: 2 },
   piece: { position: "absolute", top: -12, width: 8, height: 12, borderRadius: 2 },
 });

@@ -7,6 +7,7 @@ import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import Animated, { Easing, FadeInDown, FadeOut, useAnimatedStyle, useSharedValue, withRepeat, withTiming } from "react-native-reanimated";
 import { ActivityIndicator, FlatList, Image, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ResolvedLogo } from "@/components/ResolvedLogo";
 import { font } from "@/constants/type";
@@ -67,7 +68,7 @@ export default function Onboarding() {
   ];
   const last = step === steps.length - 1;
   if (building) return <Building />;
-  return <View style={[styles.screen, { backgroundColor: colors.background, paddingTop: insets.top + 12, paddingBottom: Math.max(insets.bottom, 16) + 8 }]}>
+  return <KeyboardAvoidingView behavior="padding" style={[styles.screen, { backgroundColor: colors.background, paddingTop: insets.top + 12, paddingBottom: Math.max(insets.bottom, 16) + 8 }]}>
     <View style={styles.top}>
       <View style={styles.dots}>{steps.map((_, index) => <View key={index} style={[styles.dot, { width: index === step ? 22 : 8, backgroundColor: index <= step ? colors.primary : colors.secondary }]} />)}</View>
       {!last ? <Pressable accessibilityRole="button" onPress={() => void finish()} hitSlop={8}><Text style={[styles.skip, { color: colors.mutedForeground }]}>Pular</Text></Pressable> : null}
@@ -79,7 +80,7 @@ export default function Onboarding() {
         <Text style={[styles.primaryText, { color: colors.primaryForeground }]}>{step === 0 ? "Começar" : last ? "Ir para o app" : "Continuar"}</Text>
       </Pressable>
     </View>
-  </View>;
+  </KeyboardAvoidingView>;
 }
 
 function Welcome() {

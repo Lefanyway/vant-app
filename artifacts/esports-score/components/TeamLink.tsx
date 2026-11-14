@@ -2,7 +2,7 @@ import { Pressable, StyleSheet, View } from "react-native";
 import type { ReactNode } from "react";
 import { ResolvedLogo } from "@/components/ResolvedLogo";
 import type { Team } from "@/lib/data";
-import { openTeam } from "@/lib/navigation";
+import { openTeam, warmTeam } from "@/lib/navigation";
 
 export function TeamLink({ team, children, compact = false, fill = false }: { team: Team; children?: ReactNode; compact?: boolean; fill?: boolean }) {
   return (
@@ -10,6 +10,7 @@ export function TeamLink({ team, children, compact = false, fill = false }: { te
       testID={`team-link-${team.id}`}
       accessibilityRole="link"
       accessibilityLabel={`Abrir ${team.name}`}
+      onPressIn={() => warmTeam(team)}
       onPress={(event) => {
         event.stopPropagation();
         openTeam(team);

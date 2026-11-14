@@ -6,15 +6,11 @@
     "outDir": "dist",
     "rootDir": "src",
     "allowImportingTsExtensions": true,
-    "types": ["node"]
+    "types": [
+      "node"
+    ]
   },
-  "include": ["src"],
-  "references": [
-    {
-      "path": "../../lib/db"
-    },
-    {
-      "path": "../../lib/api-zod"
-    }
+  "include": [
+    "src"
   ]
 }

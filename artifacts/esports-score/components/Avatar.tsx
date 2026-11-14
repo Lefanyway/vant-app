@@ -21,13 +21,14 @@ export function Avatar({ id, name, size = 84 }: { id?: string | null; name: stri
 // A grid per theme, four across, like a streaming service's icon picker: tap one, it gets a ring and a check.
 export function AvatarPicker({ value, onChange, name }: { value?: string | null; onChange: (id: string) => void; name: string }) {
   const colors = useColors();
+  const selectedId = findAvatar(value)?.id;
   return <View>
     {avatarGroups.map((group) => <View key={group.title}>
       <Text style={[styles.group, { color: colors.foreground }]}>{group.title}</Text>
       <View style={styles.grid}>
         {group.items.map((item) => {
-          const on = item.id === value;
-          return <Pressable key={item.id} accessibilityRole="radio" accessibilityState={{ selected: on }} accessibilityLabel={item.label} onPress={() => onChange(item.id)} style={pressed(styles.cell)}><View>
+          const on = item.id === selectedId;
+          return <Pressable key={item.id} accessibilityRole="radio" aria-selected={on} accessibilityLabel={item.label} onPress={() => onChange(item.id)} style={pressed(styles.cell)}><View>
             <View style={[styles.ring, { borderColor: on ? colors.foreground : "transparent" }]}><Avatar id={item.id} name={name} size={68} /></View>
             {on ? <View style={[styles.check, { backgroundColor: colors.foreground, borderColor: colors.background }]}><Feather name="check" size={13} color={colors.background} /></View> : null}
           </View></Pressable>;

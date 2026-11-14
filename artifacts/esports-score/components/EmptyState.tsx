@@ -16,19 +16,10 @@ export function EmptyState({ title, action, onAction }: { title: string; action?
   );
 }
 
-export function MatchSkeleton() {
-  const colors = useColors();
-  return (
-    <View accessibilityLabel="Carregando partidas">
-      {Array.from({ length: 6 }, (_, index) => <View key={index} style={[styles.bone, { backgroundColor: colors.card }]} />)}
-    </View>
-  );
-}
 
 const styles = StyleSheet.create({
   box: { alignItems: "center", paddingHorizontal: 24, paddingVertical: 28 },
   title: { fontSize: 14, textAlign: "center", lineHeight: 20 },
   action: { minHeight: 44, justifyContent: "center", paddingHorizontal: 12 },
   actionText: { fontSize: 14 },
-  bone: { height: 92, borderRadius: 16, marginBottom: 10 },
 });

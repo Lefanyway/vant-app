@@ -4,7 +4,7 @@ import { Feather } from "@expo/vector-icons";
 import { useState } from "react";
 import { AccessibilityInfo, LayoutAnimation, Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { MatchCard } from "@/components/MatchCard";
-import { logoSlot, ResolvedLogo } from "@/components/ResolvedLogo";
+import { ResolvedLogo } from "@/components/ResolvedLogo";
 import { font } from "@/constants/type";
 import { useColors } from "@/hooks/useColors";
 import type { Match } from "@/lib/data";
@@ -34,7 +34,7 @@ export function CompetitionCard({ name, stage, logoUrl, matches, onMatchPress, o
           </View>
           {!onOpen ? <Feather name={open ? "chevron-up" : "chevron-down"} size={18} color={colors.mutedForeground} /> : null}
         </Pressable>
-        {id && !id.startsWith("unknown:") ? <Pressable accessibilityRole="button" accessibilityLabel={`${saved ? "Desfavoritar" : "Favoritar"} ${name}`} accessibilityState={{ selected: saved }} onPress={() => toggleCompetition?.(id)} style={styles.open}><Ionicons name={saved ? "star" : "star-outline"} size={21} color={saved ? colors.primary : colors.mutedForeground} /></Pressable> : null}
+        {id && !id.startsWith("unknown:") ? <Pressable accessibilityRole="button" accessibilityLabel={`${saved ? "Desfavoritar" : "Favoritar"} ${name}`} aria-selected={saved} onPress={() => toggleCompetition?.(id)} style={styles.open}><Ionicons name={saved ? "star" : "star-outline"} size={21} color={saved ? colors.primary : colors.mutedForeground} /></Pressable> : null}
       </View>
       {open ? matches.map((match) => <MatchCard key={match.id} match={match} onPress={() => onMatchPress(match)} />) : null}
     </View></Appear>

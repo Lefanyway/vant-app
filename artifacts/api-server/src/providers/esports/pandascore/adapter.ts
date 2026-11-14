@@ -89,7 +89,6 @@ export class PandaScoreAdapter implements EsportsDataProvider {
     const teams = type === 'competition' ? [] : rows.flatMap(row => (row.opponents ?? []).flatMap(side => side.opponent ? [catalogTeam(side.opponent)] : []));
     return [...new Map([...leagues, ...teams].map(item => [`${item.type}:${item.id}`, item])).values()].slice(0, 40);
   }
-  async getGames() { return games; }
   async health() { requireArray(await this.client.request<RawMatch[]>('/matches/upcoming', { per_page: 1 })); }
   private targetGames(game?: GameId): GameId[] {
     if (game && game !== 'valorant') {
@@ -139,7 +138,6 @@ export class PandaScoreAdapter implements EsportsDataProvider {
   }
   async getLiveMatches(game?: GameId) { return (await Promise.all(this.targetGames(game).map(target => this.matchesForGame(target, undefined, 'matches/running')))).flat().filter(match => match.status === 'live'); }
   async getUpcomingMatches(game?: GameId) { return (await Promise.all(this.targetGames(game).map(target => this.matchesForGame(target, undefined, 'matches/upcoming')))).flat().filter(match => match.status === 'scheduled' || match.status === 'postponed').sort((a, b) => timestamp(a) - timestamp(b)); }
-  async getPastMatches(game?: GameId) { return (await Promise.all(this.targetGames(game).map(target => this.matchesForGame(target, undefined, 'matches/past')))).flat().filter(match => match.status === 'finished').sort((a, b) => timestamp(b) - timestamp(a)); }
   private async rawMatch(matchId: string): Promise<RawMatch | null> {
     try { return await this.client.request<RawMatch>(`/matches/${encodeURIComponent(external(matchId))}`); }
     catch (error) { if (isProviderNotFound(error)) return null; throw error; }
@@ -194,7 +192,6 @@ export class PandaScoreAdapter implements EsportsDataProvider {
     return { matches, hasMore: rows.length === perPage };
   }
   async getCompetitionMatches(competitionId: string, filter: TeamMatchFilter, page = 1, perPage = 20) { return this.entityMatches('leagues', competitionId, filter, page, perPage); }
-  async getTeams(game?: GameId) { return (await Promise.all(this.targetGames(game).map(async target => (await this.client.fetchAllPages<RawTeam>(`/${providerSlug[target]}/teams`, { sort: 'name' }, 10)).rows.map(row => mapTeam(row, target))))).flat(); }
   private async rawTeam(teamId: string): Promise<{ row: RawTeam; game: GameId } | null> {
     try {
       const key = external(teamId);
@@ -241,15 +238,4 @@ export class PandaScoreAdapter implements EsportsDataProvider {
     return { period, matches: matches.length, wins, losses };
   }
   async getTeamNews(teamId: string, limit = 5): Promise<TeamNewsArticle[]> { const team = await this.getTeam(teamId); return team ? fetchTeamNews(team.name, limit) : []; }
-  async search(query: string): Promise<SearchResult[]> {
-    if (!query.trim()) return [];
-    const parts = await Promise.all(this.targetGames().map(async game => {
-      const [teams, leagues] = await Promise.all([
-        this.client.request<RawTeam[]>(`/${providerSlug[game]}/teams`, { 'search[name]': query.trim(), per_page: 20 }),
-        this.client.request<RawLeague[]>(`/${providerSlug[game]}/leagues`, { 'search[name]': query.trim(), per_page: 20 }),
-      ]);
-      return [...requireArray(teams).map((row): SearchResult => ({ type: 'team', id: id(row.id), name: row.name, gameId: game, logoUrl: logo(row.image_url) })), ...requireArray(leagues).map((row): SearchResult => ({ type: 'competition', id: id(row.id), name: row.name, gameId: game, logoUrl: logo(row.image_url) }))];
-    }));
-    return [...new Map(parts.flat().map(item => [`${item.type}:${item.id}`, item])).values()];
-  }
 }

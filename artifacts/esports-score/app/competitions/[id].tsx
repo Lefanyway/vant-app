@@ -65,7 +65,6 @@ function MatchSection({ title, query, colors, empty }: { title: string; query: {
 const styles = StyleSheet.create({
   screen: { flex: 1, paddingHorizontal: 16 },
   nav: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 16 },
-  navTitle: { fontSize: 14, fontWeight: "700" },
   navSpacer: { width: 44 },
   header: { borderWidth: 0, borderRadius: 24, padding: 16, flexDirection: "row", alignItems: "center", gap: 14 },
   copy: { flex: 1, minWidth: 0 },
@@ -74,5 +73,5 @@ const styles = StyleSheet.create({
   section: { fontSize: 15, fontWeight: "600", marginTop: 24, marginBottom: 9 },
   message: { fontSize: 14, marginTop: 8 },
   retry: { fontSize: 13, fontWeight: "700", marginTop: 10 },
-  center: { alignItems: "center", paddingTop: 40 },
+  center: { alignItems: "center", paddingTop: 40 }
 });

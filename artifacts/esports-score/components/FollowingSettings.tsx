@@ -58,7 +58,7 @@ export function FollowingSettings() {
               <Text style={[styles.meta, { color: colors.mutedForeground }]}>{item.kind === "team" ? "Equipe" : "Competição"}</Text>
             </View>
             </Pressable>
-            {item.notify === null ? null : <Pressable accessibilityRole="switch" accessibilityState={{ checked: item.notify }} accessibilityLabel={`Avisos de ${item.name}`} onPress={() => void setNotify(item)} style={styles.icon}>
+            {item.notify === null ? null : <Pressable accessibilityRole="switch" aria-checked={item.notify} accessibilityLabel={`Avisos de ${item.name}`} onPress={() => void setNotify(item)} style={styles.icon}>
               <Feather name={item.notify ? "bell" : "bell-off"} size={20} color={item.notify ? colors.primary : colors.mutedForeground} />
             </Pressable>}
             <Pressable accessibilityRole="button" accessibilityLabel={`Deixar de seguir ${item.name}`} onPress={() => (item.kind === "team" ? toggleFavorite : toggleCompetition)(item.entity_id)} style={styles.icon}>

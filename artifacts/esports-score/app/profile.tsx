@@ -1,4 +1,4 @@
-import { Toggle } from "@/components/Motion";
+import { buzz, Toggle } from "@/components/Motion";
 import { useSpoilers } from "@/context/SpoilerContext";
 import { Feather } from "@expo/vector-icons";
 import { useState } from "react";
@@ -90,9 +90,9 @@ export default function Profile() {
           <Text style={[styles.rowLabel, { color: colors.primary }]}>{simulating ? "Enviando…" : "Simular notificação"}</Text>
           <Feather name="bell" size={18} color={colors.primary} />
         </Pressable>
-        <Pressable accessibilityRole="switch" accessibilityState={{ checked: spoilers.hideScores }} onPress={() => spoilers.setHideScores(!spoilers.hideScores)} style={[styles.row, styles.divider, { borderTopColor: colors.border }]}>
-          <View style={{ flex: 1 }}><Text style={[styles.rowLabel, { color: colors.foreground }]}>Sem spoiler</Text><Text style={{ fontSize: 12, color: colors.mutedForeground, marginTop: 2 }}>Esconde os placares até você tocar em "Ver placar"</Text></View>
-          <Toggle value={spoilers.hideScores} onChange={spoilers.setHideScores} onColor={colors.primary} offColor={colors.secondary} label="Sem spoiler" />
+        <Pressable accessibilityRole="switch" accessibilityLabel="Sem spoiler" aria-checked={spoilers.hideScores} onPress={() => { buzz(); spoilers.setHideScores(!spoilers.hideScores); }} style={[styles.row, styles.divider, { borderTopColor: colors.border }]}>
+          <View style={{ flex: 1, gap: 4, paddingVertical: 14 }}><Text style={[styles.rowLabel, { flex: 0, color: colors.foreground }]}>Sem spoiler</Text><Text style={{ fontSize: 12, color: colors.mutedForeground, lineHeight: 17 }}>Esconde os placares até você tocar em "Ver placar"</Text></View>
+          <Toggle value={spoilers.hideScores} onColor={colors.primary} offColor={colors.secondary} />
         </Pressable>
         <Pressable accessibilityRole="button" onPress={() => router.push("/onboarding")} style={[styles.row, styles.divider, { borderTopColor: colors.border }]}>
           <Text style={[styles.rowLabel, { color: colors.foreground }]}>Ver introdução</Text>
@@ -102,7 +102,7 @@ export default function Profile() {
 
       <Text style={[styles.section, { color: colors.mutedForeground }]}>Conta</Text>
       <View style={[styles.panel, { backgroundColor: colors.card }]}>
-        <Pressable accessibilityRole="button" accessibilityState={{ expanded: editing === "password" }} onPress={() => editing === "password" ? setEditing(null) : open("password")} style={styles.row}>
+        <Pressable accessibilityRole="button" aria-expanded={editing === "password"} onPress={() => editing === "password" ? setEditing(null) : open("password")} style={styles.row}>
           <Text style={[styles.rowLabel, { color: colors.foreground }]}>Alterar senha</Text>
           <Feather name={editing === "password" ? "chevron-down" : "chevron-right"} size={18} color={colors.mutedForeground} />
         </Pressable>

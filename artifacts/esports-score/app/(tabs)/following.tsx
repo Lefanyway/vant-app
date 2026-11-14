@@ -49,7 +49,7 @@ export default function Following() {
     <ScrollView contentContainerStyle={{ paddingHorizontal: 8, paddingTop: 12, paddingBottom: 110 + insets.bottom }}>
       {!favoritesReady ? <ListSkeleton /> : isNew ? <FavoritesDiscover kind={tab} /> : <>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.strip}>
-          {stripLoading ? <ListSkeleton count={1} /> : followed.map(item => <Pressable key={item.id} testID={`${kind}-chip-${item.id}`} accessibilityRole="button" accessibilityState={{ selected: picked === item.id }} accessibilityLabel={`Mostrar partidas de ${item.name}`} onPress={() => setPicked(current => current === item.id ? null : item.id)} style={[styles.chip, picked && picked !== item.id ? { opacity: 0.45 } : null]}>
+          {stripLoading ? <ListSkeleton count={1} /> : followed.map(item => <Pressable key={item.id} testID={`${kind}-chip-${item.id}`} accessibilityRole="button" aria-selected={picked === item.id} accessibilityLabel={`Mostrar partidas de ${item.name}`} onPress={() => setPicked(current => current === item.id ? null : item.id)} style={[styles.chip, picked && picked !== item.id ? { opacity: 0.45 } : null]}>
             <View style={[styles.ring, { borderColor: picked === item.id ? colors.primary : "transparent" }]}><ResolvedLogo type={kind} entityId={item.id} name={item.name} logoUrl={item.logoUrl} size={52} /></View>
             <Text numberOfLines={1} style={[styles.chipName, { color: picked === item.id ? colors.primary : colors.foreground }]}>{item.name}</Text>
           </Pressable>)}

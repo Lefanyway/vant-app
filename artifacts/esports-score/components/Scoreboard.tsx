@@ -1,13 +1,12 @@
 import { Feather } from "@expo/vector-icons";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
-import { FlatList, Modal, Pressable, RefreshControl, StyleSheet, Text, TextInput, View } from "react-native";
+import { FlatList, Modal, Pressable, RefreshControl, StyleSheet, Text, View } from "react-native";
 import { CompetitionCard } from "@/components/CompetitionCard";
 import { MatchCard } from "@/components/MatchCard";
 import { EmptyState } from "@/components/EmptyState";
 import { Flag } from "@/components/Flag";
 import { ListSkeleton } from "@/components/MobileChrome";
-import { GameIdentity } from "@/components/GameTabs";
 import { font } from "@/constants/type";
 import { useActiveScreen } from "@/hooks/useActiveScreen";
 import { useColors } from "@/hooks/useColors";
@@ -43,12 +42,11 @@ function dayLabel(key: string, todayKey: string) {
   return new Date(`${key}T12:00:00`).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
 }
 
-export function Scoreboard({ showSearch = true, showIdentity = true }: { showSearch?: boolean; showIdentity?: boolean }) {
+export function Scoreboard() {
   const colors = useColors();
   const active = useActiveScreen();
   const queryClient = useQueryClient();
   const todayKey = localDateKey(new Date());
-  const [query, setQuery] = useState("");
   const [status, setStatus] = useState<StatusFilter>("all");
   const [selectedDate, setSelectedDate] = useState(todayKey);
   const [calendarOpen, setCalendarOpen] = useState(false);
@@ -79,17 +77,11 @@ export function Scoreboard({ showSearch = true, showIdentity = true }: { showSea
   const rows = useMemo(() => {
     const dayRows = matchesQuery.data ?? [];
     const source = status === "live" ? (liveQuery.data ?? dayRows.filter((match) => match.status === "Live")) : dayRows;
-    const needle = query.trim().toLowerCase();
-    return source.filter((match) => {
-      if (status === "finished" && match.status !== "Finished") return false;
-      if (status === "brazil" && !brazilian(match)) return false;
-      if (!needle) return true;
-      return `${match.teamA.name} ${match.teamB.name} ${match.tournament}`.toLowerCase().includes(needle);
-    });
-  }, [liveQuery.data, matchesQuery.data, query, status]);
+    return source.filter((match) => (status !== "finished" || match.status === "Finished") && (status !== "brazil" || brazilian(match)));
+  }, [liveQuery.data, matchesQuery.data, status]);
   const grouped = groupMatches(rows).sort((a, b) => Math.min(...a.matches.map(priority)) - Math.min(...b.matches.map(priority)));
   // An empty day points to the next match instead of a dead end.
-  const lookAhead = !query.trim() && (status === "all" || status === "brazil") && selectedDate >= todayKey && matchesQuery.isSuccess && rows.length === 0;
+  const lookAhead = (status === "all" || status === "brazil") && selectedDate >= todayKey && matchesQuery.isSuccess && rows.length === 0;
   const upcomingQuery = useQuery({ queryKey: ["upcoming", "valorant"], queryFn: () => fetchUpcomingMatches("valorant"), enabled: lookAhead, staleTime: 5 * 60_000 });
   // Skips matches whose teams are still "TBD", which tell the user nothing.
   const next = lookAhead ? upcomingQuery.data?.find((match) => match.startTime && localDateKey(new Date(match.scheduledTime ?? match.startTime)) > selectedDate && (status !== "brazil" || brazilian(match)) && ![match.teamA, match.teamB].some((team) => team.id.startsWith("tbd:") || /^tbd$/i.test(team.name))) : undefined;
@@ -110,16 +102,6 @@ export function Scoreboard({ showSearch = true, showIdentity = true }: { showSea
   };
   return (
     <View style={styles.fill}>
-      {showSearch ? (
-        <View style={styles.header}>
-          <Text style={[styles.brand, { color: colors.foreground, fontFamily: font.bold }]}>VANT</Text>
-          <View style={[styles.search, { backgroundColor: colors.card }]}>
-            <Feather name="search" size={16} color={colors.mutedForeground} />
-            <TextInput value={query} onChangeText={setQuery} placeholder="Buscar partidas" placeholderTextColor={colors.mutedForeground} style={[styles.searchInput, { color: colors.foreground, fontFamily: font.regular }]} autoCapitalize="none" autoCorrect={false} />
-          </View>
-        </View>
-      ) : null}
-      {showIdentity ? <GameIdentity /> : null}
       <View style={styles.dateRow}>
         <View style={[styles.datePill, { backgroundColor: colors.card }]}>
           <Pressable accessibilityRole="button" accessibilityLabel="Dia anterior" onPress={() => setSelectedDate((current) => shiftKey(current, -1))} hitSlop={4} style={styles.dateButton}><Feather name="chevron-left" size={18} color={colors.primary} /></Pressable>
@@ -135,7 +117,7 @@ export function Scoreboard({ showSearch = true, showIdentity = true }: { showSea
           const background = selected ? (live ? colors.live : colors.foreground) : colors.secondary;
           const text = selected ? (live ? "#FFFFFF" : colors.background) : colors.foreground;
           return (
-            <Pressable key={filter.id} accessibilityRole="button" accessibilityLabel={filter.label} accessibilityState={{ selected }} onPress={() => setStatus(filter.id)} hitSlop={6} style={[styles.chip, { backgroundColor: background }]}>
+            <Pressable key={filter.id} accessibilityRole="button" accessibilityLabel={filter.label} aria-selected={selected} onPress={() => setStatus(filter.id)} hitSlop={6} style={[styles.chip, { backgroundColor: background }]}>
               {live ? <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: selected ? "#FFFFFF" : colors.live }} /> : null}
               {filter.id === "brazil" ? <Flag code="BR" width={24} /> : <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} maxFontSizeMultiplier={1.15} style={[styles.chipText, { color: text, fontFamily: font.semibold }]}>{filter.label}</Text>}
             </Pressable>
@@ -161,7 +143,7 @@ export function Scoreboard({ showSearch = true, showIdentity = true }: { showSea
           )}
           ListFooterComponent={recentBrazil}
           ListEmptyComponent={next && nextDay ? <EmptyState title={`${status === "brazil" ? "Nenhum time brasileiro joga neste dia." : "Nenhuma partida neste dia."}
-Próximo jogo: ${dayLabel(nextDay, todayKey).toLowerCase()} às ${next.time} · ${next.teamA.name} x ${next.teamB.name}`} action={`Ver ${dayLabel(nextDay, todayKey).toLowerCase()}`} onAction={() => setSelectedDate(nextDay)} /> : <EmptyState title={status === "live" ? "Nenhuma partida ao vivo." : query.trim() ? "Nenhuma partida encontrada." : status === "brazil" ? "Nenhum time brasileiro joga neste dia." : "Nenhuma partida neste dia."} />}
+Próximo jogo: ${dayLabel(nextDay, todayKey).toLowerCase()} às ${next.time} · ${next.teamA.name} x ${next.teamB.name}`} action={`Ver ${dayLabel(nextDay, todayKey).toLowerCase()}`} onAction={() => setSelectedDate(nextDay)} /> : <EmptyState title={status === "live" ? "Nenhuma partida ao vivo." : status === "brazil" ? "Nenhum time brasileiro joga neste dia." : "Nenhuma partida neste dia."} />}
           contentContainerStyle={styles.list}
           keyboardShouldPersistTaps="handled"
           initialNumToRender={8}
@@ -206,7 +188,7 @@ function Calendar({ visible, selected, onClose, onSelect }: { visible: boolean; 
               const inMonth = date.getMonth() === month.getMonth();
               const isSelected = key === selected;
               return (
-                <Pressable key={key} accessibilityRole="button" accessibilityState={{ selected: isSelected }} onPress={() => onSelect(key)} style={[styles.day, isSelected && { backgroundColor: colors.foreground }]}>
+                <Pressable key={key} accessibilityRole="button" aria-selected={isSelected} onPress={() => onSelect(key)} style={[styles.day, isSelected && { backgroundColor: colors.foreground }]}>
                   <Text style={{ color: isSelected ? colors.background : inMonth ? colors.foreground : colors.mutedForeground, fontFamily: font.semibold }}>{date.getDate()}</Text>
                 </Pressable>
               );
@@ -220,10 +202,6 @@ function Calendar({ visible, selected, onClose, onSelect }: { visible: boolean; 
 
 const styles = StyleSheet.create({
   fill: { flex: 1 },
-  header: { minHeight: 48, flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 4 },
-  brand: { fontSize: 18, letterSpacing: 1 },
-  search: { flex: 1, minWidth: 0, height: 40, borderRadius: 20, flexDirection: "row", alignItems: "center", paddingHorizontal: 12, gap: 8 },
-  searchInput: { flex: 1, minWidth: 0, fontSize: 15, paddingVertical: 0 },
   dateRow: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 6, marginBottom: 6 },
   datePill: { flex: 1, minHeight: 36, borderRadius: 18, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   dateButton: { width: 40, height: 36, alignItems: "center", justifyContent: "center" },

@@ -1,7 +1,8 @@
+import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { Pop } from "@/components/Motion";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { keepPreviousData, useInfiniteQuery } from "@tanstack/react-query";
-import { router, useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { FlatList, Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -31,7 +32,7 @@ export default function AddFavorites() {
   const rows = [...new Map((list.data?.pages.flatMap((page) => page.items) ?? []).map((item) => [item.id, item])).values()];
   const saved = kind === "team" ? favoriteTeams : favoriteCompetitions;
   const toggle = kind === "team" ? toggleFavorite : toggleCompetition;
-  return <View style={{ flex: 1, backgroundColor: colors.background }}>
+  return <KeyboardAvoidingView behavior="padding" enabled={Platform.OS !== "web"} style={{ flex: 1, backgroundColor: colors.background }}>
     <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
       <View style={styles.top}>
         <Pressable accessibilityRole="button" accessibilityLabel="Voltar" onPress={goBackOrHome} style={styles.back}><Feather name="arrow-left" size={22} color={colors.foreground} /></Pressable>
@@ -39,12 +40,12 @@ export default function AddFavorites() {
         <Pressable accessibilityRole="button" onPress={goBackOrHome} style={styles.done}><Text style={[styles.doneText, { color: colors.primary }]}>Pronto</Text></Pressable>
       </View>
       <View style={[styles.search, { backgroundColor: colors.card }]}>
-        <Feather name="search" size={17} color={colors.mutedForeground} />
         <TextInput value={query} onChangeText={setQuery} placeholder={kind === "team" ? "Pesquisar equipes" : "Pesquisar competições"} placeholderTextColor={colors.mutedForeground} autoCorrect={false} returnKeyType="search" accessibilityLabel="Pesquisar" style={[styles.input, { color: colors.foreground }, Platform.OS === "web" ? ({ outlineStyle: "none" } as object) : null]} />
+        <View pointerEvents="none" style={styles.searchIcon}><Feather name="search" size={17} color={colors.mutedForeground} /></View>
         {query ? <Pressable accessibilityLabel="Limpar pesquisa" onPress={() => setQuery("")} hitSlop={8}><Feather name="x" size={17} color={colors.mutedForeground} /></Pressable> : null}
       </View>
       <View style={[styles.segment, { backgroundColor: colors.card }]}>
-        {(["team", "competition"] as const).map((key) => <Pressable key={key} accessibilityRole="tab" accessibilityState={{ selected: kind === key }} onPress={() => setKind(key)} style={[styles.segmentItem, kind === key && { backgroundColor: colors.secondary }]}><Text style={[styles.segmentText, { color: kind === key ? colors.foreground : colors.mutedForeground }]}>{key === "team" ? "Equipes" : "Competições"}</Text></Pressable>)}
+        {(["team", "competition"] as const).map((key) => <Pressable key={key} accessibilityRole="tab" aria-selected={kind === key} onPress={() => setKind(key)} style={[styles.segmentItem, kind === key && { backgroundColor: colors.secondary }]}><Text style={[styles.segmentText, { color: kind === key ? colors.foreground : colors.mutedForeground }]}>{key === "team" ? "Equipes" : "Competições"}</Text></Pressable>)}
       </View>
     </View>
     <FlatList data={rows} keyExtractor={(row) => row.id} keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingHorizontal: 8, paddingBottom: 40 + insets.bottom }}
@@ -53,14 +54,14 @@ export default function AddFavorites() {
       ListFooterComponent={list.isFetchingNextPage ? <ListSkeleton count={1} /> : undefined}
       renderItem={({ item }) => {
         const on = saved.includes(item.id);
-        return <Pressable accessibilityRole="button" accessibilityState={{ selected: on }} accessibilityLabel={`${on ? "Deixar de seguir" : "Seguir"} ${item.name}`} onPress={() => toggle(item.id)} style={[styles.row, { backgroundColor: colors.card }]}>
+        return <Pressable accessibilityRole="button" aria-selected={on} accessibilityLabel={`${on ? "Deixar de seguir" : "Seguir"} ${item.name}`} onPress={() => toggle(item.id)} style={[styles.row, { backgroundColor: colors.card }]}>
           <ResolvedLogo type={kind} entityId={item.id} name={item.name} logoUrl={item.logoUrl} size={34} />
           <View style={styles.copy}><Text numberOfLines={1} style={[styles.name, { color: colors.foreground }]}>{item.name}</Text><Text numberOfLines={1} style={[styles.meta, { color: colors.mutedForeground }]}>{item.countryName || item.season || "Valorant"}</Text></View>
           <Pop active={on} color={colors.primary}><Ionicons name={on ? "star" : "star-outline"} size={22} color={on ? colors.primary : colors.mutedForeground} /></Pop>
         </Pressable>;
       }}
     />
-  </View>;
+  </KeyboardAvoidingView>;
 }
 
 const styles = StyleSheet.create({
@@ -70,8 +71,8 @@ const styles = StyleSheet.create({
   title: { flex: 1, fontSize: 17, fontWeight: "700" },
   done: { minHeight: 44, paddingHorizontal: 10, justifyContent: "center" },
   doneText: { fontSize: 15, fontWeight: "700" },
-  search: { height: 42, borderRadius: 21, paddingHorizontal: 14, flexDirection: "row", alignItems: "center", gap: 8 },
-  input: { flex: 1, minWidth: 0, fontSize: 15, paddingVertical: 0 },
+  search: { height: 42, borderRadius: 21, flexDirection: "row", alignItems: "center", gap: 0 },
+  searchIcon: { position: "absolute", left: 12 }, input: { flex: 1, alignSelf: "stretch", paddingLeft: 38, paddingRight: 12, minWidth: 0, fontSize: 15, paddingVertical: 0 },
   segment: { flexDirection: "row", borderRadius: 20, padding: 3 },
   segmentItem: { flex: 1, minHeight: 32, borderRadius: 16, alignItems: "center", justifyContent: "center" },
   segmentText: { fontSize: 13, fontWeight: "600" },

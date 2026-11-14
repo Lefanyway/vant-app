@@ -1,5 +1,5 @@
 import { router } from "expo-router";
-import { fetchMatchDetails, fetchMatchMaps, fetchMatchStats, fetchTeamNews, fetchTeamOverview } from "@/lib/api";
+import { fetchMatchDetails, fetchMatchMaps, fetchTeamNews, fetchTeamOverview } from "@/lib/api";
 import type { Match, Team } from "@/lib/data";
 import { queryClient } from "@/lib/queryClient";
 
@@ -22,7 +22,6 @@ export function warmTeam(team: Team) {
 export function warmMatch(id: string, match: Match) {
   queryClient.setQueryData(["match-preview", id], match);
   void queryClient.prefetchQuery({ queryKey: ["match-details", id], queryFn: () => fetchMatchDetails(id), staleTime: 60_000 });
-  void queryClient.prefetchQuery({ queryKey: ["match-stats", id], queryFn: () => fetchMatchStats(id), staleTime: 60_000 });
   if (match.status === "Finished" || match.status === "Live") void queryClient.prefetchQuery({ queryKey: ["match-maps", id], queryFn: () => fetchMatchMaps(id), staleTime: 5 * 60_000 });
 }
 

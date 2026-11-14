@@ -44,21 +44,6 @@ export const avatarGroups: { title: string; items: AvatarOption[] }[] = [
     { id: "mascot-mosholantern", label: "Mosh abóbora", image: require("../assets/avatars/pet-mosholantern.png"), color: "#7C5CFF" },
     { id: "mascot-moshsplat", label: "Mosh", image: require("../assets/avatars/pet-moshsplat.png"), color: "#E0447C" },
     { id: "mascot-wingmansolo", label: "Wingman solo", image: require("../assets/avatars/pet-wingmansolo.png"), color: "#FF8A1F" },
-    { id: "mini-chamber", label: "Mini Chamber", image: require("../assets/avatars/go-chamber.png"), color: "#2C64A0" },
-    { id: "mini-cypher", label: "Mini Cypher", image: require("../assets/avatars/go-cypher.png"), color: "#F5B700" },
-    { id: "mini-gekko", label: "Mini Gekko", image: require("../assets/avatars/go-gekko.png"), color: "#18B39B" },
-    { id: "mini-iso", label: "Mini Iso", image: require("../assets/avatars/go-iso.png"), color: "#7C5CFF" },
-    { id: "mini-jett", label: "Mini Jett", image: require("../assets/avatars/go-jett.png"), color: "#E0447C" },
-    { id: "mini-killjoy", label: "Mini Killjoy", image: require("../assets/avatars/go-killjoy.png"), color: "#FF8A1F" },
-    { id: "mini-omen", label: "Mini Omen", image: require("../assets/avatars/go-omen.png"), color: "#2C64A0" },
-    { id: "mini-phoenix", label: "Mini Phoenix", image: require("../assets/avatars/go-phoenix.png"), color: "#F5B700" },
-    { id: "mini-raze", label: "Mini Raze", image: require("../assets/avatars/go-raze.png"), color: "#18B39B" },
-    { id: "mini-reyna", label: "Mini Reyna", image: require("../assets/avatars/go-reyna.png"), color: "#7C5CFF" },
-    { id: "mini-sage", label: "Mini Sage", image: require("../assets/avatars/go-sage.png"), color: "#E0447C" },
-    { id: "mini-sova", label: "Mini Sova", image: require("../assets/avatars/go-sova.png"), color: "#FF8A1F" },
-    { id: "mini-tejo", label: "Mini Tejo", image: require("../assets/avatars/go-tejo.png"), color: "#2C64A0" },
-    { id: "mini-viper", label: "Mini Viper", image: require("../assets/avatars/go-viper.png"), color: "#F5B700" },
-    { id: "mini-yoru", label: "Mini Yoru", image: require("../assets/avatars/go-yoru.png"), color: "#18B39B" },
   ] },
   { title: "Torcida", items: [
     { id: "fan-zap", label: "Raio", icon: "zap", color: "#FF4655" },
@@ -72,6 +57,6 @@ export const avatarGroups: { title: string; items: AvatarOption[] }[] = [
 
 const all = avatarGroups.flatMap((group) => group.items);
 const byId = new Map(all.map((item) => [item.id, item]));
-export const findAvatar = (id?: string | null) => (id ? byId.get(id) : undefined);
+export const findAvatar = (id?: string | null) => (id ? byId.get(id.replace(/^mini-/, "agent-")) : undefined);
 // New fans start with a random picture, like a new streaming profile, and can change it on the next step.
 export const randomAvatar = () => all[Math.floor(Math.random() * all.length)]!.id;

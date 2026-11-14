@@ -3,7 +3,7 @@ import { useColors } from "@/hooks/useColors";
 
 export function AppLoading({ message = "Carregando partidas…" }: { message?: string }) {
   const colors = useColors();
-  return <View accessibilityRole="progressbar" accessibilityLabel={message} accessibilityState={{ busy: true }} style={[styles.screen, { backgroundColor: colors.background }]}>
+  return <View accessibilityRole="progressbar" accessibilityLabel={message} aria-busy={true} style={[styles.screen, { backgroundColor: colors.background }]}>
     <View style={styles.brand}>
       <Image source={require("../assets/generated/games/valorant-mark.png")} resizeMode="contain" style={styles.logo} />
       <Text style={[styles.name, { color: colors.foreground }]}>VANT</Text>

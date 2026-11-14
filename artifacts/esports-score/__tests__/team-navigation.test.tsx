@@ -5,41 +5,7 @@ import Search from "@/app/(tabs)/search";
 import Following from "@/app/(tabs)/following";
 import MatchDetail from "@/app/match/[id]";
 import { MatchCard } from "@/components/MatchCard";
-import { TeamLink } from "@/components/TeamLink";
 
-const mockApi = {
-  fetchTeamOverview: jest.fn(),
-  fetchTeamMatches: jest.fn(),
-  fetchTeamRoster: jest.fn(),
-  fetchTeamStats: jest.fn(),
-  fetchSearch: jest.fn(),
-  fetchTeams: jest.fn(),
-  fetchMatches: jest.fn(),
-  fetchMatchDetails: jest.fn(),
-  localDateKey: () => "2026-08-24",
-  toApiTeam: (team: any) => ({
-    id: team.id,
-    name: team.name,
-    short: team.acronym ?? team.name.slice(0, 3).toUpperCase(),
-    color: "#4C8DFF",
-    game: team.gameId === "cs2" ? "CS2" : "Valorant",
-    gameId: team.gameId,
-  }),
-  toMatch: (match: any) => ({
-    id: match.id,
-    startTime: match.startTime,
-    game: "Valorant",
-    tournament: match.competition?.name ?? "Test Cup",
-    time: "12:00",
-    status: match.status === "finished" ? "Finished" : "Upcoming",
-    teamA: mockApi.toApiTeam(match.homeTeam),
-    teamB: mockApi.toApiTeam(match.awayTeam),
-    scoreA: match.homeScore,
-    scoreB: match.awayScore,
-    format: "BO3",
-    detail: "Match",
-  }),
-};
 let mockRouteParams: { id?: string } = { id: "loud" };
 const mockToggleFavorite = jest.fn();
 let mockFavoriteTeams: string[] = [];
@@ -51,8 +17,8 @@ jest.mock("@/lib/api", () => ({
   ApiError: class ApiError extends Error { status = 0; },
   fetchTeamOverview: () => Promise.resolve(null), fetchTeamMatches: () => Promise.resolve({ matches: [], hasMore: false }),
   fetchTeamRoster: () => Promise.resolve([]), fetchTeamStats: () => Promise.resolve({ stats: null, available: false }),
-  fetchSearch: () => Promise.resolve([]), fetchTeams: () => Promise.resolve([]), fetchMatches: () => Promise.resolve([]),
-  fetchMatchDetails: () => Promise.resolve(null), fetchMatch: () => Promise.resolve(null), fetchMatchStats: () => Promise.resolve(null), applyMatchStats: (details: unknown) => details, errorMessage: (_error: unknown, fallback: string) => fallback, localDateKey: () => "2026-08-24",
+  fetchMatches: () => Promise.resolve([]),
+  fetchMatchDetails: () => Promise.resolve(null), fetchMatch: () => Promise.resolve(null), errorMessage: (_error: unknown, fallback: string) => fallback, localDateKey: () => "2026-08-24",
   toApiTeam: (value: any) => ({ id: value.id, name: value.name, short: value.acronym ?? value.name.slice(0, 3).toUpperCase(), color: "#4C8DFF", game: "Valorant", gameId: value.gameId }),
   toMatch: (value: any) => ({ id: value.id, startTime: value.startTime, game: "Valorant", tournament: "Test Cup", time: "12:00", status: "Upcoming", teamA: value.homeTeam, teamB: value.awayTeam, format: "BO3", detail: "Match" }),
 }));

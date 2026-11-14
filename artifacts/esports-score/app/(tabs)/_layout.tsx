@@ -38,7 +38,7 @@ export default function TabLayout() {
       {Platform.OS === "ios" ? <BlurView intensity={40} tint={colors.background === "#090B0D" ? "dark" : "light"} style={StyleSheet.absoluteFill} /> : null}
       {state.routes.filter(route => labels[route.name]).map(route => {
         const active = state.routes[state.index].key === route.key;
-        return <Pressable key={route.key} accessibilityRole="tab" accessibilityState={{ selected: active }} accessibilityLabel={labels[route.name]} onPress={() => { const event = emitter.emit({ type: "tabPress", target: route.key, canPreventDefault: true }); if (!active && !event.defaultPrevented) navigateToTab(route.key); }} style={[styles.item, { backgroundColor: active ? colors.secondary : "transparent" }]}>
+        return <Pressable key={route.key} accessibilityRole="tab" aria-selected={active} accessibilityLabel={labels[route.name]} onPress={() => { const event = emitter.emit({ type: "tabPress", target: route.key, canPreventDefault: true }); if (!active && !event.defaultPrevented) navigateToTab(route.key); }} style={[styles.item, { backgroundColor: active ? colors.secondary : "transparent" }]}>
           <Feather name={icons[route.name as keyof typeof icons]} size={22} color={active ? colors.primary : colors.mutedForeground} />
           <Text style={[styles.label, { color: active ? colors.primary : colors.mutedForeground, fontFamily: font.semibold }]}>{labels[route.name]}</Text>
         </Pressable>;

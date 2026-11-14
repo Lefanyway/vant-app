@@ -57,7 +57,7 @@ export function PrimaryButton({ label, onPress, busy = false, disabled = false }
   const colors = useColors();
   const off = disabled || busy;
   return (
-    <Pressable accessibilityRole="button" accessibilityState={{ disabled: off, busy }} disabled={off} onPress={onPress} style={({ pressed }) => [styles.primary, { backgroundColor: colors.primary, opacity: disabled ? 0.45 : pressed ? 0.85 : 1 }]}>
+    <Pressable accessibilityRole="button" aria-disabled={off} aria-busy={busy} disabled={off} onPress={onPress} style={({ pressed }) => [styles.primary, { backgroundColor: colors.primary, opacity: disabled ? 0.45 : pressed ? 0.85 : 1 }]}>
       {busy ? <ActivityIndicator color={colors.primaryForeground} /> : <Text style={[styles.primaryText, { color: colors.primaryForeground }]}>{label}</Text>}
     </Pressable>
   );

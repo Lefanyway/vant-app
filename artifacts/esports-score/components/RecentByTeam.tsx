@@ -20,7 +20,7 @@ export function RecentByTeam({ teams, matchesByTeam }: { teams: [Team, Team]; ma
     <View accessibilityRole="tablist" style={[styles.segment, { backgroundColor: colors.card }]}>
       {teams.map((team) => {
         const on = team.id === selected;
-        return <Pressable key={team.id} accessibilityRole="tab" accessibilityState={{ selected: on }} accessibilityLabel={`Últimas partidas de ${team.name}`} onPress={() => setSelected(team.id)} style={[styles.option, on && { backgroundColor: colors.secondary }]}>
+        return <Pressable key={team.id} accessibilityRole="tab" aria-selected={on} accessibilityLabel={`Últimas partidas de ${team.name}`} onPress={() => setSelected(team.id)} style={[styles.option, on && { backgroundColor: colors.secondary }]}>
           <ResolvedLogo type="team" name={team.name} entityId={team.id} logoUrl={team.logoUrl} size={22} />
           <Text numberOfLines={1} style={[styles.optionText, { color: on ? colors.foreground : colors.mutedForeground }]}>{listTeamLabel(team, 12)}</Text>
         </Pressable>;

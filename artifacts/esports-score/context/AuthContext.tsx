@@ -1,5 +1,5 @@
 import type { Session } from "@supabase/supabase-js";
-import React, { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
 export type Profile = { id: string; display_name: string | null; avatar?: string | null; notify_saved_results: boolean };

@@ -1,5 +1,5 @@
 import { AppLoading } from "@/components/AppLoading";
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { persistOptions, queryClient } from '@/lib/queryClient';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';

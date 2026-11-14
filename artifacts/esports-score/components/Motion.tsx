@@ -63,13 +63,13 @@ export function RollingNumber({ value, style }: { value: number | string; style?
 }
 
 // an on/off toggle whose white knob glides across with a soft spring (the same on every phone and the web),
-export function Toggle({ value, onChange, onColor, offColor, label }: { value: boolean; onChange: (next: boolean) => void; onColor: string; offColor: string; label: string }) {
+export function Toggle({ value, onColor, offColor }: { value: boolean; onColor: string; offColor: string }) {
   const x = useSharedValue(value ? 1 : 0);
   useEffect(() => { x.value = withTiming(value ? 1 : 0, { duration: 160 }); }, [value, x]);
   const knob = useAnimatedStyle(() => ({ transform: [{ translateX: x.value * 20 }] }));
-  return <Pressable accessibilityRole="switch" accessibilityLabel={label} accessibilityState={{ checked: value }} hitSlop={8} onPress={() => { buzz(); onChange(!value); }} style={[styles.track, { backgroundColor: value ? onColor : offColor }]}>
+  return <View style={[styles.track, { backgroundColor: value ? onColor : offColor }]}>
     <Animated.View style={[styles.knob, knob]} />
-  </Pressable>;
+  </View>;
 }
 
 // and a win gets a short burst of confetti falling over the screen.

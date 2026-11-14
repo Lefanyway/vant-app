@@ -14,7 +14,12 @@ describe("avatars", () => {
     fireEvent.press(screen.getByRole("radio", { name: "Jett" }));
     expect(onChange).toHaveBeenCalledWith("agent-jett");
     rerender(<AvatarPicker value="agent-jett" onChange={onChange} name="Ana" />);
-    expect(screen.getByRole("radio", { name: "Jett" }).props.accessibilityState.selected).toBe(true);
+    expect(screen.getByRole("radio", { name: "Jett" })).toBeSelected();
+  });
+
+  it("selects the agent portrait for a previously saved miniature", () => {
+    render(<AvatarPicker value="mini-jett" onChange={jest.fn()} name="Ana" />);
+    expect(screen.getByRole("radio", { name: "Jett" })).toBeSelected();
   });
 
   it("ignores unknown saved ids", () => {

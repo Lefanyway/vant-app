@@ -1,7 +1,10 @@
 {
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
-    "types": ["jest", "react"],
+    "types": [
+      "jest",
+      "react"
+    ],
     "strict": true,
     "paths": {
       "@/*": [
@@ -14,10 +17,5 @@
     "**/*.tsx",
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
-  ],
-  "references": [
-    {
-      "path": "../../lib/api-client-react"
-    }
   ]
 }

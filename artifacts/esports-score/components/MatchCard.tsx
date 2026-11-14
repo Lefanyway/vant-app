@@ -6,7 +6,7 @@ import { AccessibilityInfo, Animated, Platform, StyleSheet, Text, View } from "r
 import { logoSlot, ResolvedLogo } from "@/components/ResolvedLogo";
 import { font } from "@/constants/type";
 import { useColors } from "@/hooks/useColors";
-import { formatLabel, type Match } from "@/lib/data";
+import type { Match } from "@/lib/data";
 import { hasScore, listTeamLabel, matchDayLabel, statusText } from "@/lib/matches";
 
 const singleLine = Platform.OS === "web"
@@ -48,7 +48,7 @@ export function MatchCard({ match, onPress, showDay = false }: { match: Match; o
   const live = match.status === "Live";
   // With "sem spoiler" on, finished and live scores wait until the match is opened and revealed.
   const scored = hasScore(match) && !useSpoilers().isHidden(match.id);
-  const format = formatLabel(match.format);
+  const format = match.format;
   const status = live ? "Ao vivo" : match.status === "Upcoming" ? match.time : statusText(match.status);
   return (
     <View style={[styles.row, { borderTopColor: colors.border }]}>

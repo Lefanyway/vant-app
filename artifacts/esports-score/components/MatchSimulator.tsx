@@ -1,7 +1,7 @@
 import { Feather } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { FlatList, Modal, Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { FlatList, KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { PredictionWhy } from "@/components/PredictionWhy";
 import { ResolvedLogo } from "@/components/ResolvedLogo";
 import { font } from "@/constants/type";
@@ -19,7 +19,7 @@ export function MatchSimulator({ coefficients }: { coefficients: Coefficients })
   const [teams, setTeams] = useState<[Choice | null, Choice | null]>([null, null]);
   const [choosing, setChoosing] = useState<0 | 1 | null>(null);
   const [a, b] = teams;
-  const result = useQuery({ queryKey: ["simulate", a?.id, b?.id], queryFn: () => simulate(a!.id, b!.id, coefficients), enabled: Boolean(a && b && a.id !== b.id), staleTime: 10 * 60_000 });
+  const result = useQuery({ queryKey: ["simulate", a?.id, b?.id, coefficients], queryFn: () => simulate(a!.id, b!.id, coefficients), enabled: Boolean(a && b && a.id !== b.id), staleTime: 10 * 60_000 });
   const chance = result.data?.chance;
   return <View style={[styles.card, { backgroundColor: colors.card }]}>
     <View style={styles.slots}>
@@ -54,11 +54,12 @@ function TeamPicker({ visible, onClose, onPick }: { visible: boolean; onClose: (
   useEffect(() => { const timer = setTimeout(() => setDebounced(text.trim()), 300); return () => clearTimeout(timer); }, [text]);
   const search = useQuery({ queryKey: ["catalog-team-pick", debounced], queryFn: ({ signal }) => fetchCatalogPage("team", 1, debounced, signal), enabled: visible, staleTime: 10 * 60_000 });
   return <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
     <Pressable style={styles.backdrop} onPress={onClose}>
       <Pressable style={[styles.sheet, { backgroundColor: colors.card }]} onPress={(event) => event.stopPropagation()}>
         <View style={[styles.search, { backgroundColor: colors.secondary }]}>
-          <Feather name="search" size={18} color={colors.mutedForeground} />
           <TextInput autoFocus value={text} onChangeText={setText} placeholder="Buscar time, ex.: LOUD" placeholderTextColor={colors.mutedForeground} autoCapitalize="none" autoCorrect={false} style={[styles.input, { color: colors.foreground }, noWebOutline]} />
+          <View pointerEvents="none" style={styles.searchIcon}><Feather name="search" size={18} color={colors.mutedForeground} /></View>
         </View>
         <FlatList data={search.data?.items ?? []} keyExtractor={(item) => item.id} keyboardShouldPersistTaps="handled" style={{ maxHeight: 360 }}
           ListEmptyComponent={<Text style={[styles.note, { color: colors.mutedForeground, padding: 16 }]}>{search.isFetching ? "Buscando…" : "Nenhum time encontrado."}</Text>}
@@ -68,6 +69,7 @@ function TeamPicker({ visible, onClose, onPick }: { visible: boolean; onClose: (
           </Pressable>} />
       </Pressable>
     </Pressable>
+    </KeyboardAvoidingView>
   </Modal>;
 }
 
@@ -87,9 +89,9 @@ const styles = StyleSheet.create({
   fill: { height: 8, borderRadius: 4 },
   verdict: { fontSize: 15, fontFamily: font.bold, textAlign: "center" },
   backdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", padding: 16 },
-  sheet: { borderRadius: 22, padding: 12, gap: 8, width: "100%", maxWidth: 440, alignSelf: "center" },
-  search: { height: 44, borderRadius: 22, flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 14 },
-  input: { flex: 1, minWidth: 0, fontSize: 15, paddingVertical: 0 },
+  sheet: { maxHeight: "100%", borderRadius: 22, padding: 12, gap: 8, width: "100%", maxWidth: 440, alignSelf: "center" },
+  search: { height: 44, borderRadius: 22, flexDirection: "row", alignItems: "center", gap: 0, },
+  searchIcon: { position: "absolute", left: 12 }, input: { flex: 1, alignSelf: "stretch", paddingLeft: 38, paddingRight: 12, minWidth: 0, fontSize: 15, paddingVertical: 0 },
   option: { minHeight: 52, flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 8 },
   optionName: { flex: 1, minWidth: 0, fontSize: 15, fontFamily: font.semibold },
 });

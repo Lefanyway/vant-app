@@ -29,7 +29,7 @@ export function CompetitionDirectory({ competitions }: { competitions: ApiCompet
     return [...map];
   }, [competitions, favoriteCompetitions]);
   return <View>{groups.map(([name, rows]) => <View key={name} style={styles.section}>
-    <Pressable accessibilityRole="button" accessibilityState={{ expanded: expanded.includes(name) }} accessibilityLabel={`${name}, ${rows.length} competições`} onPress={() => setExpanded(current => current.includes(name) ? current.filter(item => item !== name) : [...current, name])} style={[styles.heading, { backgroundColor: name === "Fixadas" ? colors.accent : colors.card }]}>
+    <Pressable accessibilityRole="button" aria-expanded={expanded.includes(name)} accessibilityLabel={`${name}, ${rows.length} competições`} onPress={() => setExpanded(current => current.includes(name) ? current.filter(item => item !== name) : [...current, name])} style={[styles.heading, { backgroundColor: name === "Fixadas" ? colors.accent : colors.card }]}>
       <View style={[styles.regionIcon, { backgroundColor: colors.secondary }]}><Feather name={name === "Fixadas" ? "bookmark" : "globe"} size={21} color={name === "Fixadas" ? colors.primary : colors.foreground} /></View>
       <Text style={[styles.label, { color: colors.foreground }]}>{name}</Text><Text style={{ color: colors.mutedForeground, fontSize: 12 }}>{rows.length}</Text><Feather name={expanded.includes(name) ? "chevron-up" : "chevron-down"} size={22} color={colors.mutedForeground} />
     </Pressable>

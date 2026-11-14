@@ -59,7 +59,7 @@ export default function Onboarding() {
   };
   const steps = [
     <Welcome key="welcome" />,
-    <Name key="name" nick={nick} onNick={setNick} avatar={avatar} onDone={() => setStep(2)} />,
+    <Name key="name" nick={nick} onNick={setNick} onDone={() => setStep(2)} />,
     <AvatarStep key="avatar" nick={nick} avatar={avatar} onAvatar={setAvatar} />,
     <Glossary key="glossary" />,
     <Pick key="teams" kind="team" title="Quais times você torce?" subtitle="Escolha quantos quiser." />,
@@ -68,13 +68,16 @@ export default function Onboarding() {
   ];
   const last = step === steps.length - 1;
   if (building) return <Building />;
-  return <KeyboardAvoidingView behavior="padding" style={[styles.screen, { backgroundColor: colors.background, paddingTop: insets.top + 12, paddingBottom: Math.max(insets.bottom, 16) + 8 }]}>
+  return <KeyboardAvoidingView behavior="padding" style={[styles.screen, { backgroundColor: colors.background, paddingTop: insets.top + 12 }]}>
     <View style={styles.top}>
       <View style={styles.dots}>{steps.map((_, index) => <View key={index} style={[styles.dot, { width: index === step ? 22 : 8, backgroundColor: index <= step ? colors.primary : colors.secondary }]} />)}</View>
       {!last ? <Pressable accessibilityRole="button" onPress={() => void finish()} hitSlop={8}><Text style={[styles.skip, { color: colors.mutedForeground }]}>Pular</Text></Pressable> : null}
     </View>
-    <View style={styles.body}>{steps[step]}</View>
-    <View style={styles.footer}>
+    {(step === 2 || step === 4 || step === 5) ? <View style={styles.body}>{steps[step]}</View> :
+      <ScrollView key={step} style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1, paddingTop: 20 }} keyboardShouldPersistTaps="handled">
+        {steps[step]}
+      </ScrollView>}
+    <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) + 4 }]}>
       {step > 0 ? <Pressable accessibilityRole="button" onPress={() => setStep(step - 1)} style={[styles.secondary, { backgroundColor: colors.card }]}><Feather name="arrow-left" size={20} color={colors.foreground} /></Pressable> : null}
       <Pressable accessibilityRole="button" onPress={() => last ? void finish() : setStep(step + 1)} style={[styles.primary, { backgroundColor: colors.primary }]}>
         <Text style={[styles.primaryText, { color: colors.primaryForeground }]}>{step === 0 ? "Começar" : last ? "Ir para o app" : "Continuar"}</Text>
@@ -123,14 +126,10 @@ function Glossary() {
 }
 
 // One thing at a time: first only the nickname,
-function Name({ nick, onNick, avatar, onDone }: { nick: string; onNick: (value: string) => void; avatar: string | null; onDone: () => void }) {
+function Name({ nick, onNick, onDone }: { nick: string; onNick: (value: string) => void; onDone: () => void }) {
   const colors = useColors();
   return <View style={styles.welcome}>
-    <Pressable accessibilityRole="button" accessibilityLabel="Trocar avatar" onPress={onDone} style={pressed()}>
-      <Avatar id={avatar} name={nick || "?"} size={104} />
-      <View style={[styles.pencil, { backgroundColor: colors.foreground, borderColor: colors.background }]}><Feather name="edit-2" size={14} color={colors.background} /></View>
-    </Pressable>
-    <Text style={[styles.title, { color: colors.foreground, marginTop: 8 }]}>Qual é o seu nick no Valorant?</Text>
+    <Text style={[styles.title, { color: colors.foreground }]}>Qual é o seu nick no Valorant?</Text>
     <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>Use o mesmo do jogo, assim a galera te reconhece.</Text>
     <TextInput value={nick} onChangeText={onNick} placeholder="Ex.: aspas" placeholderTextColor={colors.mutedForeground} maxLength={30} autoCapitalize="none" autoCorrect={false} autoFocus returnKeyType="next" onSubmitEditing={onDone} accessibilityLabel="Nick no Valorant" style={[styles.nick, { backgroundColor: colors.card, color: colors.foreground }, Platform.OS === "web" ? ({ outlineStyle: "none" } as object) : null]} />
   </View>;
@@ -185,8 +184,8 @@ function Pick({ kind, title, subtitle }: { kind: "team" | "competition"; title: 
     <Text style={[styles.title, { color: colors.foreground }]}>{title}</Text>
     <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>{subtitle}</Text>
     <View style={[styles.search, { backgroundColor: colors.card }]}>
-      <Feather name="search" size={17} color={colors.mutedForeground} />
       <TextInput value={query} onChangeText={setQuery} placeholder={kind === "team" ? "Procurar um time" : "Procurar um campeonato"} placeholderTextColor={colors.mutedForeground} autoCorrect={false} style={[styles.input, { color: colors.foreground }, Platform.OS === "web" ? ({ outlineStyle: "none" } as object) : null]} />
+      <View pointerEvents="none" style={styles.searchIcon}><Feather name="search" size={17} color={colors.mutedForeground} /></View>
     </View>
     {saved.length ? <Text style={[styles.count, { color: colors.primary }]}>{saved.length} {kind === "team" ? (saved.length > 1 ? "times escolhidos" : "time escolhido") : (saved.length > 1 ? "campeonatos escolhidos" : "campeonato escolhido")}</Text> : null}
     <FlatList data={rows} keyExtractor={(row) => row.id} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} style={styles.list} contentContainerStyle={{ paddingBottom: 20 }} renderItem={({ item }) => <Choice item={item} kind={kind} on={saved.includes(item.id)} onPress={() => toggle(item.id)} />} />
@@ -195,7 +194,7 @@ function Pick({ kind, title, subtitle }: { kind: "team" | "competition"; title: 
 
 function Choice({ item, kind, on, onPress }: { item: ApiSearchResult; kind: "team" | "competition"; on: boolean; onPress: () => void }) {
   const colors = useColors();
-  return <Pressable accessibilityRole="checkbox" accessibilityState={{ checked: on }} accessibilityLabel={item.name} onPress={onPress} style={pressed([styles.choice, { backgroundColor: on ? colors.accent : colors.card, borderColor: on ? colors.primary : "transparent" }])}>
+  return <Pressable accessibilityRole="checkbox" aria-checked={on} accessibilityLabel={item.name} onPress={onPress} style={pressed([styles.choice, { backgroundColor: on ? colors.accent : colors.card, borderColor: on ? colors.primary : "transparent" }])}>
     <ResolvedLogo type={kind} entityId={item.id} name={item.name} logoUrl={item.logoUrl} size={34} />
     <View style={styles.featureCopy}><Text numberOfLines={1} style={[styles.choiceName, { color: colors.foreground }]}>{item.name}</Text><Text numberOfLines={1} style={[styles.featureText, { color: colors.mutedForeground }]}>{item.countryName || item.season || "Valorant"}</Text></View>
     <Ionicons name={on ? "checkmark-circle" : "add-circle-outline"} size={24} color={on ? colors.primary : colors.mutedForeground} />
@@ -250,7 +249,7 @@ const styles = StyleSheet.create({
   primaryText: { fontSize: 16, fontFamily: font.bold },
   secondary: { width: 54, height: 54, borderRadius: 27, alignItems: "center", justifyContent: "center" },
   secondaryWide: { marginTop: 20, minHeight: 50, borderRadius: 25, paddingHorizontal: 22, flexDirection: "row", alignItems: "center", gap: 10 },
-  welcome: { flex: 1, alignItems: "center", justifyContent: "center", gap: 12, paddingBottom: 24 },
+  welcome: { flexGrow: 1, alignItems: "center", justifyContent: "center", gap: 12, paddingBottom: 24 },
   mark: { width: 72, height: 72 },
   title: { fontSize: 26, lineHeight: 32, fontFamily: font.bold, textAlign: "center" },
   subtitle: { fontSize: 15, lineHeight: 22, fontFamily: font.regular, textAlign: "center", marginBottom: 8 },
@@ -261,9 +260,8 @@ const styles = StyleSheet.create({
   featureTitle: { fontSize: 17, fontFamily: font.semibold },
   featureText: { fontSize: 15, lineHeight: 21, fontFamily: font.regular },
   pick: { flex: 1, gap: 8 },
-  nick: { alignSelf: "stretch", height: 60, borderRadius: 20, paddingHorizontal: 18, fontSize: 20, fontFamily: font.semibold, textAlign: "center", marginTop: 16 },
+  nick: { alignSelf: "stretch", minHeight: 52, borderRadius: 18, paddingHorizontal: 18, fontSize: 20, fontFamily: font.semibold, textAlign: "center", marginTop: 16 },
   preview: { alignItems: "center", gap: 8, marginBottom: 4 },
-  pencil: { position: "absolute", right: -6, bottom: -6, width: 30, height: 30, borderRadius: 15, borderWidth: 3, alignItems: "center", justifyContent: "center" },
   term: { borderRadius: 22, padding: 20, flexDirection: "row", gap: 16, alignItems: "center" },
   termIcon: { width: 52, height: 52, borderRadius: 26, alignItems: "center", justifyContent: "center" },
   termTitle: { fontSize: 20, fontFamily: font.bold },
@@ -272,8 +270,8 @@ const styles = StyleSheet.create({
   building: { flex: 1, alignItems: "center", justifyContent: "center", gap: 12, paddingHorizontal: 32 },
   buildingMark: { width: 88, height: 88, marginBottom: 12 },
   buildingLine: { height: 28, justifyContent: "center" },
-  search: { height: 44, borderRadius: 22, paddingHorizontal: 14, flexDirection: "row", alignItems: "center", gap: 8, marginTop: 8 },
-  input: { flex: 1, minWidth: 0, fontSize: 15, paddingVertical: 0 },
+  search: { height: 44, borderRadius: 22, flexDirection: "row", alignItems: "center", gap: 0, marginTop: 8 },
+  searchIcon: { position: "absolute", left: 12 }, input: { flex: 1, alignSelf: "stretch", paddingLeft: 38, paddingRight: 12, minWidth: 0, fontSize: 15, paddingVertical: 0 },
   count: { fontSize: 13, fontFamily: font.semibold, marginTop: 4 },
   choice: { minHeight: 60, borderRadius: 16, borderWidth: 1.5, paddingHorizontal: 12, marginBottom: 8, flexDirection: "row", alignItems: "center", gap: 12 },
   choiceName: { fontSize: 15, fontFamily: font.semibold },

@@ -30,7 +30,7 @@ export function MobileHeader({ title = 'Buscar no VANT', children }: { title?: s
 
 export function ScreenTabs<T extends string>({ items, selected, onChange }: { items: { key: T; label: string }[]; selected: T; onChange: (key: T) => void }) {
   const colors = useColors();
-  return <View style={styles.tabs}>{items.map(item => <Pressable key={item.key} accessibilityRole="tab" accessibilityState={{ selected: selected === item.key }} onPress={() => onChange(item.key)} style={[styles.tab, { borderBottomColor: selected === item.key ? colors.foreground : 'transparent' }]}><Text style={[styles.tabText, { color: selected === item.key ? colors.foreground : colors.mutedForeground }]}>{item.label}</Text></Pressable>)}</View>;
+  return <View style={styles.tabs}>{items.map(item => <Pressable key={item.key} accessibilityRole="tab" aria-selected={selected === item.key} onPress={() => onChange(item.key)} style={[styles.tab, { borderBottomColor: selected === item.key ? colors.foreground : 'transparent' }]}><Text style={[styles.tabText, { color: selected === item.key ? colors.foreground : colors.mutedForeground }]}>{item.label}</Text></Pressable>)}</View>;
 }
 
 export function EmptyState({ title, description, onRetry }: { title: string; description?: string; onRetry?: () => void }) {

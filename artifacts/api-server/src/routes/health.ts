@@ -1,12 +1,10 @@
 import { Router, type IRouter } from "express";
-import { HealthCheckResponse } from "@workspace/api-zod";
 import { redisCache } from "../lib/redis";
 
 const router: IRouter = Router();
 
 router.get("/healthz", (_req, res) => {
-  const data = HealthCheckResponse.parse({ status: "ok" });
-  res.json(data);
+  res.json({ status: "ok" });
 });
 
 // Whether the shared Redis cache is on, and how often it answered since the API started.

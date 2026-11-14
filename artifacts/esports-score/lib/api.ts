@@ -11,9 +11,7 @@ export type TeamNewsResult = { articles: TeamNewsArticle[]; available: boolean; 
 export type ApiCompetition = { id: string; name: string; region?: string; serieName?: string; logoUrl?: string; gameId?: string };
 export type ApiMatch = { id: string; gameId: string; competition: ApiCompetition; homeTeam: ApiTeam; awayTeam: ApiTeam; startTime: string | null; scheduledTime?: string | null; status: "scheduled" | "live" | "finished" | "cancelled" | "postponed"; bestOf?: 1 | 3 | 5; homeScore?: number; awayScore?: number; streams?: { url: string; language?: string; official?: boolean }[]; games?: MatchGame[] };
 type ApiMatchDetails = { match: ApiMatch; maps: { id: string; mapName?: string; mapNumber: number; homeScore?: number; awayScore?: number }[]; playerStats: unknown[]; economy: null; veto: null; headToHead: ApiMatch[]; recentMatches: { teamId: string; matches: ApiMatch[] }[]; capabilities: { maps: boolean; playerStats: boolean; economy: boolean; veto: boolean; headToHead: boolean; recentMatches: boolean } };
-type ApiStats = { maps: { id: string; mapName: string; mapNumber: number; homeScore?: number; awayScore?: number; status?: string }[]; playerStats: { playerId: string; playerName: string; teamId?: string; agent?: string; rating?: number; acs?: number; kills?: number; deaths?: number; assists?: number; kast?: number; adr?: number; headshotPercentage?: number; firstKills?: number; firstDeaths?: number }[]; economy?: { homeRoundsWon?: number; awayRoundsWon?: number; homePistolRoundsWon?: number; awayPistolRoundsWon?: number; homeAttackRoundsWon?: number; awayAttackRoundsWon?: number; homeDefenseRoundsWon?: number; awayDefenseRoundsWon?: number }; veto: { teamName: string; action: string; mapName: string }[]; headToHead: ApiMatch[]; recentMatches: { teamId: string; matches: ApiMatch[] }[] };
-type ApiStatsResult = { stats: ApiStats | null; capabilities: { deepStats: boolean; maps: boolean; playerStats: boolean; economy: boolean; veto: boolean; headToHead: boolean; recentMatches: boolean }; error?: string };
-export type MatchDetails = { match: Match; maps: { id: string; mapName?: string; mapNumber: number; homeScore?: number; awayScore?: number }[]; playerStats: unknown[]; economy: null; veto: { teamName: string; action: string; mapName: string }[] | null; headToHead: Match[]; recentMatches: { teamId: string; matches: Match[] }[]; capabilities: { maps: boolean; playerStats: boolean; economy: boolean; veto: boolean; headToHead: boolean; recentMatches: boolean }; stats?: ApiStats };
+export type MatchDetails = { match: Match; maps: { id: string; mapName?: string; mapNumber: number; homeScore?: number; awayScore?: number }[]; playerStats: unknown[]; economy: null; veto: { teamName: string; action: string; mapName: string }[] | null; headToHead: Match[]; recentMatches: { teamId: string; matches: Match[] }[]; capabilities: { maps: boolean; playerStats: boolean; economy: boolean; veto: boolean; headToHead: boolean; recentMatches: boolean } };
 export type ApiSearchResult = { type: "team" | "competition" | "game"; id: string; name: string; gameId?: string; logoUrl?: string; acronym?: string; country?: string; countryName?: string; season?: string };
 
 const baseUrl = process.env.EXPO_PUBLIC_API_BASE_URL ?? "";
@@ -92,10 +90,8 @@ export function toMatch(row: ApiMatch): Match {
 }
 
 export async function fetchMatches(game = "valorant", date = localDateKey(new Date()), signal?: AbortSignal) {
-  const started = Date.now();
   const params = new URLSearchParams({ date, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone, game });
   const rows = await request<ApiMatch[]>(`/matches?${params.toString()}`, signal);
-  console.log(`[VANT] frontend received=${rows.length} game=${game ?? "all"} date=${date} ms=${Date.now() - started}`);
   const matches = rows.map(toMatch);
   warmMatchLogos(matches);
   return matches;
@@ -114,27 +110,6 @@ export async function fetchMatchDetails(id: string, signal?: AbortSignal) {
 
 // Map names and rounds for the timeline, fetched apart from the match so it opens at once.
 export async function fetchMatchMaps(id: string) { return (await request<{ games: MatchGame[] }>(`/matches/${encodeURIComponent(id)}/maps`)).games; }
-export async function fetchMatchStats(id: string, signal?: AbortSignal) {
-  try { return await request<ApiStatsResult>(`/matches/${encodeURIComponent(id)}/stats`, signal); }
-  catch { return null; }
-}
-
-export function applyMatchStats(details: MatchDetails, statsResult: ApiStatsResult | null | undefined): MatchDetails {
-  if (!statsResult?.capabilities.deepStats || !statsResult.stats) return details;
-  const stats = statsResult.stats;
-  return {
-    ...details,
-    maps: stats.maps?.length ? stats.maps : details.maps,
-    playerStats: stats.playerStats ?? details.playerStats,
-    economy: stats.economy ? null : details.economy,
-    veto: stats.veto ?? details.veto,
-    headToHead: stats.headToHead?.length ? stats.headToHead.map(toMatch) : details.headToHead,
-    recentMatches: stats.recentMatches?.length ? stats.recentMatches.map((group) => ({ ...group, matches: group.matches.map(toMatch) })) : details.recentMatches,
-    capabilities: { maps: statsResult.capabilities.maps, playerStats: statsResult.capabilities.playerStats, economy: statsResult.capabilities.economy, veto: statsResult.capabilities.veto, headToHead: statsResult.capabilities.headToHead, recentMatches: statsResult.capabilities.recentMatches },
-    stats,
-  };
-}
-
 export async function fetchLiveMatches(game = "valorant", signal?: AbortSignal) {
   return (await request<ApiMatch[]>(`/matches/live?game=${encodeURIComponent(game)}`, signal)).map(toMatch);
 }
@@ -151,14 +126,6 @@ export async function fetchUpcomingMatches(game = "valorant") {
 export function teamCalendarUrl(id: string, subscribe: boolean) {
   const url = `${baseUrl}/api/teams/${encodeURIComponent(id)}/calendar.ics`;
   return subscribe ? url.replace(/^https?:/, "webcal:") : url;
-}
-
-export async function fetchTeams(game = "valorant") {
-  return (await request<ApiTeam[]>(`/teams?game=${encodeURIComponent(game)}`)).map(toTeam);
-}
-
-export async function fetchSearch(query: string) {
-  return request<ApiSearchResult[]>(`/search?q=${encodeURIComponent(query)}`);
 }
 
 export async function fetchCompetitions(game = "valorant") {

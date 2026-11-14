@@ -17,7 +17,7 @@ export function Explainer({ title, steps, note }: { title: string; steps: { titl
   const colors = useColors();
   const [open, setOpen] = useState(false);
   return <View style={[styles.card, { backgroundColor: colors.card }]}>
-    <Pressable accessibilityRole="button" accessibilityState={{ expanded: open }} onPress={() => setOpen(!open)} style={styles.header}>
+    <Pressable accessibilityRole="button" aria-expanded={open} onPress={() => setOpen(!open)} style={styles.header}>
       <Feather name="info" size={18} color={colors.primary} />
       <Text style={[styles.title, { color: colors.foreground }]}>{title}</Text>
       <Feather name={open ? "chevron-up" : "chevron-down"} size={18} color={colors.mutedForeground} />

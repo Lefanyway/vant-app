@@ -40,6 +40,8 @@ export default function Insights() {
         </View> : null}
         <ModelExplainer />
 
+        {data.run?.coefficients ? <>{section("Simular confronto")}<MatchSimulator coefficients={data.run.coefficients} /></> : null}
+
         {results.length ? <>
           {section("Como o modelo foi")}
           <View style={[styles.dayCard, { backgroundColor: colors.card }]}>
@@ -65,7 +67,6 @@ export default function Insights() {
           </View>)}
         </View>) : <EmptyState title="Nenhuma partida agendada" />}
 
-        {data.run?.coefficients ? <>{section("Simular confronto")}<MatchSimulator coefficients={data.run.coefficients} /></> : null}
 
         {section("Ranking Elo")}
         <View style={[styles.card, { backgroundColor: colors.card }]}>
@@ -106,7 +107,7 @@ function PredictionRow({ match, first, coefficients, colors }: { match: Upcoming
   const features = match.predictions?.features;
   return <View style={!first && { borderTopWidth: 1, borderTopColor: colors.border }}>
     <PredictionLine match={match} home={home} colors={colors} />
-    {home !== undefined ? <Pressable accessibilityRole="button" accessibilityState={{ expanded: open }} onPress={() => setOpen(!open)} disabled={!features || !coefficients} style={styles.why}>
+    {home !== undefined ? <Pressable accessibilityRole="button" aria-expanded={open} onPress={() => setOpen(!open)} disabled={!features || !coefficients} style={styles.why}>
       <Text style={[styles.badge, { color: colors.foreground, backgroundColor: colors.secondary }]}>{confidence(home)}</Text>
       {features && coefficients ? <><Text style={[styles.whyText, { color: colors.primary }]}>Por quê?</Text><Feather name={open ? "chevron-up" : "chevron-down"} size={14} color={colors.primary} /></> : null}
     </Pressable> : null}

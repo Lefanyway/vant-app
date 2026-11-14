@@ -1,17 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { StyleSheet, Text, View } from "react-native";
 import { EmptyState, ListSkeleton } from "@/components/MobileChrome";
-import { MatchCard } from "@/components/MatchCard";
 import { UpcomingCard } from "@/components/UpcomingCard";
 import { CompetitionGroups } from "@/components/RecentByTeam";
-import { ResolvedLogo } from "@/components/ResolvedLogo";
 import { useColors } from "@/hooks/useColors";
 import { fetchCompetitionMatches, fetchTeamMatches, toMatch } from "@/lib/api";
 import type { Match } from "@/lib/data";
-import { openMatch } from "@/lib/navigation";
 
 const dayKey = (iso: string) => { const date = new Date(iso); return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`; };
-const dayLabel = (iso: string) => { const date = new Date(iso); return `${date.toLocaleDateString("pt-BR", { weekday: "short" })} · ${date.toLocaleDateString("pt-BR", { day: "numeric", month: "short" })}`; };
 
 // Upcoming matches of everything the user follows, one card per day, split by competition inside it.
 export function FollowedMatches({ kind, ids, filter = "upcoming" }: { kind: "team" | "competition"; ids: string[]; filter?: "upcoming" | "finished" }) {
@@ -38,9 +34,7 @@ export function FollowedMatches({ kind, ids, filter = "upcoming" }: { kind: "tea
 }
 
 const styles = StyleSheet.create({
-  day: { borderRadius: 22, paddingHorizontal: 14, paddingTop: 14, paddingBottom: 6, marginBottom: 12 },
-  dayTitle: { fontSize: 15, fontWeight: "700", marginBottom: 4 },
-  competition: { flexDirection: "row", alignItems: "center", gap: 8, paddingTop: 10, paddingBottom: 4 },
-  competitionName: { flex: 1, fontSize: 12, fontWeight: "600" },
-  none: { fontSize: 14, paddingHorizontal: 4, paddingVertical: 8 },
+  
+  
+  none: { fontSize: 14, paddingHorizontal: 4, paddingVertical: 8 }
 });

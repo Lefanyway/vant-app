@@ -1,6 +1,6 @@
 import * as Notifications from "expo-notifications";
 import { router } from "expo-router";
-import React, { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { Platform } from "react-native";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";

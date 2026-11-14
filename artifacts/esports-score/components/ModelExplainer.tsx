@@ -12,14 +12,14 @@ const steps = [
   { title: "5. Atualização", text: "O modelo é treinado de novo duas vezes por dia com os resultados mais recentes. O \"Por quê?\" de cada jogo mostra quais fatores mais pesaram." },
 ];
 
-// "Como funciona": the model in five plain steps, collapsed until asked for.
-export function ModelExplainer() {
+// "Como funciona": plain steps, collapsed until asked for (used by Previsões and Palpites).
+export function Explainer({ title, steps, note }: { title: string; steps: { title: string; text: string }[]; note?: string }) {
   const colors = useColors();
   const [open, setOpen] = useState(false);
   return <View style={[styles.card, { backgroundColor: colors.card }]}>
     <Pressable accessibilityRole="button" accessibilityState={{ expanded: open }} onPress={() => setOpen(!open)} style={styles.header}>
       <Feather name="info" size={18} color={colors.primary} />
-      <Text style={[styles.title, { color: colors.foreground }]}>Como as previsões são calculadas</Text>
+      <Text style={[styles.title, { color: colors.foreground }]}>{title}</Text>
       <Feather name={open ? "chevron-up" : "chevron-down"} size={18} color={colors.mutedForeground} />
     </Pressable>
     {open ? <View style={styles.body}>
@@ -27,9 +27,13 @@ export function ModelExplainer() {
         <Text style={[styles.stepTitle, { color: colors.foreground }]}>{step.title}</Text>
         <Text style={[styles.stepText, { color: colors.mutedForeground }]}>{step.text}</Text>
       </View>)}
-      <Text style={[styles.note, { color: colors.mutedForeground }]}>É uma estimativa estatística, não uma certeza: jogos equilibrados podem ir para qualquer lado.</Text>
+      {note ? <Text style={[styles.note, { color: colors.mutedForeground }]}>{note}</Text> : null}
     </View> : null}
   </View>;
+}
+
+export function ModelExplainer() {
+  return <Explainer title="Como as previsões são calculadas" steps={steps} note="É uma estimativa estatística, não uma certeza: jogos equilibrados podem ir para qualquer lado." />;
 }
 
 const styles = StyleSheet.create({

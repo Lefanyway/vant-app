@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Avatar } from "@/components/Avatar";
 import { ListSkeleton, MobileHeader, ScreenTabs } from "@/components/MobileChrome";
 import { Appear, buzz, Confetti, Pop, RollingNumber, Tap } from "@/components/Motion";
+import { Explainer } from "@/components/ModelExplainer";
 import { ResolvedLogo } from "@/components/ResolvedLogo";
 import { font } from "@/constants/type";
 import { useAuth } from "@/context/AuthContext";
@@ -51,7 +52,6 @@ export default function Picks() {
   const me = session?.user.id;
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<Tab>("play");
-  const [guide, setGuide] = useState(false);
   const open = useQuery({ queryKey: ["picks-open"], queryFn: fetchOpenMatches, staleTime: 5 * 60_000 });
   const mine = useQuery({ queryKey: ["picks-mine", me], queryFn: fetchMyPicks, enabled: !!me });
   const league = useQuery({ queryKey: ["picks-league"], queryFn: fetchLeague, staleTime: 5 * 60_000 });
@@ -71,11 +71,6 @@ export default function Picks() {
   });
   const choose = (matchId: string, choice: Choice) => { setChoices(current => ({ ...current, [matchId]: choice })); save.mutate({ matchId, choice }); };
 
-  // The guide opens by itself the first time.
-  useEffect(() => {
-    AsyncStorage.getItem("vant:picks-guide").then(seen => { if (!seen) setGuide(true); }).catch(() => undefined);
-  }, []);
-  const closeGuide = () => { setGuide(false); void AsyncStorage.setItem("vant:picks-guide", "1").catch(() => undefined); };
 
   // Results that came in since the last visit get a celebration, once.
   const [party, setParty] = useState<Graded[] | null>(null);
@@ -109,11 +104,7 @@ export default function Picks() {
         <Stat icon="⭐" value={String(points)} label="pontos" />
         <Stat icon="🏆" value={rank >= 0 ? `${rank + 1}º` : "–"} label="na liga" />
       </View>
-      <Tap accessibilityRole="button" onPress={() => { buzz(); setGuide(true); }} style={[styles.howButton, { backgroundColor: colors.card }]}>
-        <Feather name="help-circle" size={17} color={colors.primary} />
-        <Text style={[styles.howText, { color: colors.foreground }]}>Como funcionam os palpites?</Text>
-        <Feather name="chevron-right" size={17} color={colors.mutedForeground} />
-      </Tap>
+      <Explainer title="Como funcionam os palpites" steps={howItWorks} />
 
       {tab === "play" ? <>
         {open.isLoading ? <ListSkeleton /> : !open.data?.length ? <Empty text="Nenhuma partida aberta agora. Volte mais tarde!" /> : [...groups.entries()].map(([day, rows]) => <View key={day}>
@@ -130,7 +121,6 @@ export default function Picks() {
         <Text style={[styles.reset, { color: colors.mutedForeground }]}>A liga recomeça toda segunda-feira.</Text>
       </> : null}
     </ScrollView>
-    {guide ? <Guide onClose={closeGuide} /> : null}
     {party ? <Celebration wins={party} streak={streak} onClose={closeParty} /> : null}
   </View>;
 }
@@ -237,32 +227,13 @@ function Bar({ value }: { value: number }) {
   return <View style={[styles.bar, { backgroundColor: colors.secondary }]}><Animated.View style={[styles.barFill, { backgroundColor: colors.primary }, fill]} /></View>;
 }
 
-// How it works: one idea per page, a big picture and one line, like a quick tutorial.
-const steps = [
-  { icon: "✍️", title: "Monte o placar", points: "Use – e +" },
-  { icon: "✅", title: "Acertou quem vence", points: `+${HIT_POINTS} pontos` },
-  { icon: "🎯", title: "Cravou o placar", points: `+${HIT_POINTS + EXACT_BONUS} pontos` },
-  { icon: "🏆", title: "Passe seus amigos na liga", points: "Toda semana" },
+// How it works, in the same collapsible card as Previsões.
+const howItWorks = [
+  { title: "1. Monte o placar", text: "Em cada jogo, use o – e o + para dizer quantos mapas cada time vence. Dá para mudar até o jogo começar." },
+  { title: `2. Acertou quem vence: +${HIT_POINTS} pontos`, text: "Vale para o time que você colocou como vencedor." },
+  { title: `3. Cravou o placar: +${HIT_POINTS + EXACT_BONUS} pontos`, text: "Placar exato da série, como 2 x 1." },
+  { title: "4. Sequência e liga", text: "Acertos seguidos aumentam sua sequência. Some pontos e passe seus amigos na liga, que recomeça toda segunda." },
 ];
-function Guide({ onClose }: { onClose: () => void }) {
-  const colors = useColors();
-  const [page, setPage] = useState(0);
-  const step = steps[page];
-  const last = page === steps.length - 1;
-  return <Animated.View entering={FadeIn.duration(200)} style={[StyleSheet.absoluteFill, styles.overlay]}>
-    <Appear style={[styles.sheet, styles.center, { backgroundColor: colors.card }]}>
-      <Animated.View key={page} entering={FadeIn.duration(250)} style={styles.center}>
-        <Text style={styles.bigEmoji}>{step.icon}</Text>
-        <Text style={[styles.sheetTitle, { color: colors.foreground }]}>{step.title}</Text>
-        <Text style={[styles.sheetPoints, { color: colors.primary }]}>{step.points}</Text>
-      </Animated.View>
-      <View style={styles.dots}>{steps.map((_, index) => <View key={index} style={[styles.dot, { width: index === page ? 22 : 8, backgroundColor: index === page ? colors.primary : colors.secondary }]} />)}</View>
-      <Tap accessibilityRole="button" onPress={() => { buzz(); if (last) onClose(); else setPage(page + 1); }} style={[styles.sheetButton, { backgroundColor: colors.primary }]}>
-        <Text style={[styles.sheetButtonText, { color: colors.primaryForeground }]}>{last ? "Bora palpitar!" : "Próximo"}</Text>
-      </Tap>
-    </Appear>
-  </Animated.View>;
-}
 
 // Shown when new results came in: confetti, the points counting up and the streak.
 function Celebration({ wins, streak, onClose }: { wins: Graded[]; streak: number; onClose: () => void }) {
@@ -296,8 +267,6 @@ const styles = StyleSheet.create({
   statIcon: { fontSize: 16 },
   statValue: { fontSize: 18, fontFamily: font.bold, fontVariant: ["tabular-nums"] },
   statLabel: { fontSize: 11, textAlign: "center" },
-  howButton: { flexDirection: "row", alignItems: "center", gap: 8, minHeight: 44, borderRadius: 14, paddingHorizontal: 14, marginBottom: 4 },
-  howText: { flex: 1, fontSize: 14, fontFamily: font.medium },
   day: { fontSize: 15, fontFamily: font.semibold, marginTop: 16, marginBottom: 9 },
   card: { borderRadius: 18, borderWidth: 1, padding: 14, marginBottom: 10, gap: 12 },
   cardTop: { flexDirection: "row", alignItems: "center", gap: 8 },
@@ -337,8 +306,6 @@ const styles = StyleSheet.create({
   sheet: { width: "100%", maxWidth: 340, borderRadius: 22, padding: 20, gap: 12 },
   center: { alignItems: "center", gap: 4 },
   bigEmoji: { fontSize: 40, marginBottom: 4 },
-  dots: { flexDirection: "row", gap: 5, marginTop: 8 },
-  dot: { height: 6, borderRadius: 3 },
   sheetTitle: { fontSize: 18, fontFamily: font.bold, textAlign: "center" },
   sheetPoints: { fontSize: 14, fontFamily: font.semibold, fontVariant: ["tabular-nums"] },
   sheetStreak: { fontSize: 13 },

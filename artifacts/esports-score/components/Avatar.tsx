@@ -1,5 +1,5 @@
 import { Feather } from "@expo/vector-icons";
-import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { pressed } from "@/components/Motion";
 import { font } from "@/constants/type";
 import { useColors } from "@/hooks/useColors";
@@ -7,46 +7,40 @@ import { avatarGroups, findAvatar } from "@/lib/avatars";
 
 const initials = (name: string) => name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]!.toUpperCase()).join("") || "?";
 
-// The fan's picture: the avatar they chose, or their initials until they choose one.
+// The fan's picture, a rounded square like a streaming profile: the avatar they chose, or their initials.
 export function Avatar({ id, name, size = 84 }: { id?: string | null; name: string; size?: number }) {
   const colors = useColors();
   const avatar = findAvatar(id);
-  const round = { width: size, height: size, borderRadius: size / 2 };
-  if (avatar?.image) return <Image source={avatar.image} accessibilityLabel={avatar.label} style={[round, { backgroundColor: colors.card }]} />;
-  return <View style={[styles.center, round, { backgroundColor: avatar?.color ?? colors.accent }]}>
+  const tile = { width: size, height: size, borderRadius: Math.round(size * 0.16), backgroundColor: avatar?.color ?? (avatar?.image ? colors.card : colors.accent) };
+  if (avatar?.image) return <Image source={avatar.image} accessibilityLabel={avatar.label} resizeMode="cover" style={tile} />;
+  return <View style={[styles.center, tile]}>
     {avatar?.icon ? <Feather name={avatar.icon} size={size * 0.45} color="#FFFFFF" /> : <Text style={{ fontSize: size / 3, fontFamily: font.bold, color: colors.primary }}>{initials(name)}</Text>}
   </View>;
 }
 
-// A grid like a streaming service's profile picker: tap one, it gets a ring and a check.
+// One row per theme, scrolled sideways, like a streaming service's icon picker: tap one, it gets a ring and a check.
 export function AvatarPicker({ value, onChange, name }: { value?: string | null; onChange: (id: string) => void; name: string }) {
   const colors = useColors();
-  return <View style={styles.picker}>
+  return <View>
     {avatarGroups.map((group) => <View key={group.title}>
-      <Text style={[styles.group, { color: colors.mutedForeground }]}>{group.title}</Text>
-      <View style={styles.grid}>
+      <Text style={[styles.group, { color: colors.foreground }]}>{group.title}</Text>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.row}>
         {group.items.map((item) => {
           const on = item.id === value;
-          return <Pressable key={item.id} accessibilityRole="radio" accessibilityState={{ selected: on }} accessibilityLabel={item.label} onPress={() => onChange(item.id)} style={pressed(styles.cell)}>
-            <View style={[styles.ring, { borderColor: on ? colors.primary : "transparent" }]}><Avatar id={item.id} name={name} size={60} /></View>
-            {on ? <View style={[styles.check, { backgroundColor: colors.primary, borderColor: colors.background }]}><Feather name="check" size={12} color={colors.primaryForeground} /></View> : null}
-            <Text numberOfLines={1} style={[styles.label, { color: on ? colors.foreground : colors.mutedForeground }]}>{item.label}</Text>
+          return <Pressable key={item.id} accessibilityRole="radio" accessibilityState={{ selected: on }} accessibilityLabel={item.label} onPress={() => onChange(item.id)} style={pressed()}>
+            <View style={[styles.ring, { borderColor: on ? colors.foreground : "transparent" }]}><Avatar id={item.id} name={name} size={76} /></View>
+            {on ? <View style={[styles.check, { backgroundColor: colors.foreground, borderColor: colors.background }]}><Feather name="check" size={13} color={colors.background} /></View> : null}
           </Pressable>;
         })}
-      </View>
+      </ScrollView>
     </View>)}
-    <Text style={[styles.credit, { color: colors.mutedForeground }]}>Fotos de jogadores: Liquipedia (CC BY-SA)</Text>
   </View>;
 }
 
 const styles = StyleSheet.create({
   center: { alignItems: "center", justifyContent: "center" },
-  picker: { gap: 6 },
-  group: { fontSize: 13, fontFamily: font.semibold, marginTop: 10, marginBottom: 8 },
-  grid: { flexDirection: "row", flexWrap: "wrap", rowGap: 12 },
-  cell: { width: "25%", alignItems: "center", gap: 6 },
-  ring: { borderWidth: 2.5, borderRadius: 36, padding: 3 },
-  check: { position: "absolute", top: 0, right: "18%", width: 22, height: 22, borderRadius: 11, borderWidth: 2, alignItems: "center", justifyContent: "center" },
-  label: { fontSize: 12, fontFamily: font.medium, maxWidth: 76 },
-  credit: { fontSize: 11, fontFamily: font.regular, marginTop: 12, textAlign: "center" },
+  group: { fontSize: 16, fontFamily: font.bold, marginTop: 18, marginBottom: 10 },
+  row: { gap: 8, paddingRight: 20 },
+  ring: { borderWidth: 3, borderRadius: 16, padding: 2 },
+  check: { position: "absolute", top: -4, right: -4, width: 24, height: 24, borderRadius: 12, borderWidth: 2, alignItems: "center", justifyContent: "center" },
 });

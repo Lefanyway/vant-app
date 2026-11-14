@@ -11,11 +11,10 @@ describe("avatars", () => {
   it("picks an avatar from the grid and marks it selected", () => {
     const onChange = jest.fn();
     const { rerender } = render(<AvatarPicker value={null} onChange={onChange} name="Ana" />);
-    fireEvent.press(screen.getByRole("radio", { name: "aspas" }));
-    expect(onChange).toHaveBeenCalledWith("player-aspas");
-    rerender(<AvatarPicker value="player-aspas" onChange={onChange} name="Ana" />);
-    expect(screen.getByRole("radio", { name: "aspas" }).props.accessibilityState.selected).toBe(true);
-    expect(screen.getByText("Fotos de jogadores: Liquipedia (CC BY-SA)")).toBeTruthy();
+    fireEvent.press(screen.getByRole("radio", { name: "Jett" }));
+    expect(onChange).toHaveBeenCalledWith("agent-jett");
+    rerender(<AvatarPicker value="agent-jett" onChange={onChange} name="Ana" />);
+    expect(screen.getByRole("radio", { name: "Jett" }).props.accessibilityState.selected).toBe(true);
   });
 
   it("ignores unknown saved ids", () => {

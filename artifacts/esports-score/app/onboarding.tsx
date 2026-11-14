@@ -5,7 +5,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
-import Animated, { Easing, useAnimatedStyle, useSharedValue, withRepeat, withTiming } from "react-native-reanimated";
+import Animated, { Easing, useAnimatedStyle, useSharedValue, withRepeat, withTiming, ZoomIn } from "react-native-reanimated";
 import { ActivityIndicator, FlatList, Image, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ResolvedLogo } from "@/components/ResolvedLogo";
@@ -15,6 +15,7 @@ import { useAuth } from "@/context/AuthContext";
 import { ensurePermission } from "@/context/NotificationsContext";
 import { useColors } from "@/hooks/useColors";
 import { fetchCatalogPage, type ApiSearchResult } from "@/lib/api";
+import { randomAvatar } from "@/lib/avatars";
 import { onboardingKey, popularCompetitions, popularTeams } from "@/lib/onboarding";
 
 const mark = require("../assets/generated/games/valorant-mark.png");
@@ -33,10 +34,10 @@ export default function Onboarding() {
   const userId = session?.user.id;
   const [step, setStep] = useState(0);
   const [nick, setNick] = useState(profile?.display_name ?? "");
-  const [avatar, setAvatar] = useState<string | null>(profile?.avatar ?? null);
+  const [avatar, setAvatar] = useState<string | null>(() => profile?.avatar ?? randomAvatar());
   const [building, setBuilding] = useState(false);
   // The profile can arrive after the screen opens: fill in what the fan already has.
-  useEffect(() => { if (profile) { setNick((current) => current || profile.display_name || ""); setAvatar((current) => current ?? profile.avatar ?? null); } }, [profile]);
+  useEffect(() => { if (profile) { setNick((current) => current || profile.display_name || ""); setAvatar((current) => profile.avatar ?? current); } }, [profile]);
   // Both lists load while the welcome step is read, so the pick steps open already filled.
   const client = useQueryClient();
   useEffect(() => {
@@ -46,7 +47,7 @@ export default function Onboarding() {
   // Saves the nickname and avatar, then a short "building" screen before the home.
   const finish = async () => {
     setBuilding(true);
-    const name = nick.trim().slice(0, 60);
+    const name = nick.split("#")[0]!.trim().slice(0, 60);
     const changes = { ...(name && name !== profile?.display_name ? { display_name: name } : {}), ...(avatar !== (profile?.avatar ?? null) ? { avatar } : {}) };
     await Promise.all([
       AsyncStorage.setItem(onboardingKey(userId), "1").catch(() => undefined), // shows again next time, harmless
@@ -57,7 +58,7 @@ export default function Onboarding() {
   };
   const steps = [
     <Welcome key="welcome" />,
-    <Name key="name" nick={nick} onNick={setNick} onDone={() => setStep(2)} />,
+    <Name key="name" nick={nick} onNick={setNick} avatar={avatar} onDone={() => setStep(2)} />,
     <AvatarStep key="avatar" nick={nick} avatar={avatar} onAvatar={setAvatar} />,
     <Glossary key="glossary" />,
     <Pick key="teams" kind="team" title="Quais times você torce?" subtitle="Escolha quantos quiser." />,
@@ -121,22 +122,26 @@ function Glossary() {
 }
 
 // One thing at a time: first only the nickname,
-function Name({ nick, onNick, onDone }: { nick: string; onNick: (value: string) => void; onDone: () => void }) {
+function Name({ nick, onNick, avatar, onDone }: { nick: string; onNick: (value: string) => void; avatar: string | null; onDone: () => void }) {
   const colors = useColors();
   return <View style={styles.welcome}>
-    <Text style={[styles.title, { color: colors.foreground, marginTop: 40 }]}>Como você quer se chamar?</Text>
-    <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>É assim que os outros fãs vão te ver.</Text>
-    <TextInput value={nick} onChangeText={onNick} placeholder="Seu apelido" placeholderTextColor={colors.mutedForeground} maxLength={30} autoCorrect={false} autoFocus returnKeyType="next" onSubmitEditing={onDone} accessibilityLabel="Apelido" style={[styles.nick, { backgroundColor: colors.card, color: colors.foreground }, Platform.OS === "web" ? ({ outlineStyle: "none" } as object) : null]} />
+    <Pressable accessibilityRole="button" accessibilityLabel="Trocar avatar" onPress={onDone} style={pressed()}>
+      <Avatar id={avatar} name={nick || "?"} size={104} />
+      <View style={[styles.pencil, { backgroundColor: colors.foreground, borderColor: colors.background }]}><Feather name="edit-2" size={14} color={colors.background} /></View>
+    </Pressable>
+    <Text style={[styles.title, { color: colors.foreground, marginTop: 8 }]}>Qual é o seu nick no Valorant?</Text>
+    <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>Use o mesmo do jogo, assim a galera te reconhece.</Text>
+    <TextInput value={nick} onChangeText={onNick} placeholder="Ex.: aspas" placeholderTextColor={colors.mutedForeground} maxLength={30} autoCapitalize="none" autoCorrect={false} autoFocus returnKeyType="next" onSubmitEditing={onDone} accessibilityLabel="Nick no Valorant" style={[styles.nick, { backgroundColor: colors.card, color: colors.foreground }, Platform.OS === "web" ? ({ outlineStyle: "none" } as object) : null]} />
   </View>;
 }
 
-// then the picture, with the chosen one big on top next to the nickname.
+// then the picture: the chosen one pops in big on top, the options below in rows by theme.
 function AvatarStep({ nick, avatar, onAvatar }: { nick: string; avatar: string | null; onAvatar: (id: string) => void }) {
   const colors = useColors();
   return <View style={styles.pick}>
     <View style={styles.preview}>
-      <Avatar id={avatar} name={nick || "?"} size={88} />
-      <Text numberOfLines={1} style={[styles.choiceName, { color: colors.foreground }]}>{nick.trim() || "Você"}</Text>
+      <Animated.View key={avatar ?? "none"} entering={ZoomIn.springify().damping(14)}><Avatar id={avatar} name={nick || "?"} size={88} /></Animated.View>
+      <Text numberOfLines={1} style={[styles.choiceName, { color: colors.foreground }]}>{nick.split("#")[0]!.trim() || "Você"}</Text>
     </View>
     <Text style={[styles.title, { color: colors.foreground }]}>Escolha seu avatar</Text>
     <ScrollView showsVerticalScrollIndicator={false} style={styles.list} contentContainerStyle={{ paddingBottom: 20 }}>
@@ -254,6 +259,7 @@ const styles = StyleSheet.create({
   pick: { flex: 1, gap: 8 },
   nick: { alignSelf: "stretch", height: 60, borderRadius: 20, paddingHorizontal: 18, fontSize: 20, fontFamily: font.semibold, textAlign: "center", marginTop: 16 },
   preview: { alignItems: "center", gap: 8, marginBottom: 4 },
+  pencil: { position: "absolute", right: -6, bottom: -6, width: 30, height: 30, borderRadius: 15, borderWidth: 3, alignItems: "center", justifyContent: "center" },
   term: { borderRadius: 20, padding: 16, flexDirection: "row", gap: 16, alignItems: "center" },
   termIcon: { width: 52, height: 52, borderRadius: 26, alignItems: "center", justifyContent: "center" },
   termTitle: { fontSize: 18, fontFamily: font.bold },

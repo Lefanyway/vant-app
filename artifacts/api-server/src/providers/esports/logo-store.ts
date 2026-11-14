@@ -7,7 +7,7 @@ import { prepareLogo } from "./logo-image";
 export type Logo = { body: Buffer; contentType: string };
 type LogoResult = Logo | { status: number };
 
-const ALLOWED_HOSTS = ["images.pandascore.co", "cdn.pandascore.co", "cdn-api.pandascore.co"];
+const ALLOWED_HOSTS = ["images.pandascore.co", "cdn.pandascore.co", "cdn-api.pandascore.co", "liquipedia.net"];
 const MEMORY_LIMIT = 512;
 const MAX_BYTES = 2 * 1024 * 1024;
 

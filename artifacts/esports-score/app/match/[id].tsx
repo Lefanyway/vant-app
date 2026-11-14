@@ -1,3 +1,4 @@
+import { MatchTimeline } from "@/components/MatchTimeline";
 import { ResolvedLogo } from "@/components/ResolvedLogo";
 import { Feather } from "@expo/vector-icons";
 import { useLocalSearchParams } from "expo-router";
@@ -78,6 +79,7 @@ function Overview({ details, colors }: { details: MatchDetails; colors: ReturnTy
   const match = details.match;
   return <View>
     {match.status !== "Finished" && match.status !== "Cancelled" && (match.streams?.length || officialStreams(match.tournament).length) ? <WatchOptions streams={match.streams?.length ? match.streams : officialStreams(match.tournament)} /> : null}
+    <MatchTimeline match={match} />
     <WinProbability match={match} />
     {details.maps.some(map => map.mapName) ? <SectionTitle title="Mapas" colors={colors} /> : null}
     {!details.maps.some(map => map.mapName) ? null : <View style={[styles.panel, { backgroundColor: colors.card, borderColor: colors.border }]}>{details.maps.filter((map) => map.mapName).map((map, index, named) => <InfoRow key={map.id} last={index === named.length - 1} label={map.mapName ?? `Mapa ${map.mapNumber}`} value={typeof map.homeScore === "number" && typeof map.awayScore === "number" ? `${map.homeScore}–${map.awayScore}` : "A definir"} colors={colors} />)}</View>}

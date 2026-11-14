@@ -6,6 +6,17 @@ import type { GameId, Match, TeamMatchFilter, TeamOverview } from "../providers/
 import { isCalendarDate, isTimezone } from '../providers/esports/date';
 import { redisCache } from "../lib/redis";
 import { teamCalendar } from "../providers/esports/calendar";
+import { cachedPlayerPhoto, playerPhoto } from "../providers/esports/player-photo";
+
+const proxied = (url: string) => `/api/esports/assets/logo?url=${encodeURIComponent(url)}`;
+// Fills missing player photos from what is already known; unknown names are looked up in the background
+// so the list answers now and the photos appear on the next visit.
+const withPhotos = <T extends { name: string; imageUrl?: string }>(players: T[]): T[] => players.map((player) => {
+  if (player.imageUrl) return player;
+  const known = cachedPlayerPhoto(player.name);
+  if (known === undefined) void playerPhoto(player.name);
+  return known ? { ...player, imageUrl: proxied(known), imageCredit: "Liquipedia" } : player;
+});
 
 const router = Router();
 const games = [{ id: "valorant", name: "VALORANT", shortName: "VALORANT" }, { id: "cs2", name: "Counter-Strike 2", shortName: "CS2" }, { id: "lol", name: "League of Legends", shortName: "LoL" }];
@@ -152,7 +163,7 @@ router.get("/teams/:id/overview", async (req, res, next) => {
       if (own === undefined || opponent === undefined) return [];
       return [own > opponent ? "W" as const : own < opponent ? "L" as const : "D" as const];
     });
-    const overview: TeamOverview = { team, nextMatch, recentMatches, competitions: competitions.slice(0, 5), rosterPreview: (team.roster ?? []).slice(0, 5), recentForm, capabilities: { overview: true, matches: past.status === 'fulfilled' || upcoming.status === 'fulfilled', roster: Boolean(team.roster?.length), stats: Boolean(selected.getTeamStats), news: Boolean(selected.getTeamNews) } };
+    const overview: TeamOverview = { team, nextMatch, recentMatches, competitions: competitions.slice(0, 5), rosterPreview: withPhotos((team.roster ?? []).slice(0, 5)), recentForm, capabilities: { overview: true, matches: past.status === 'fulfilled' || upcoming.status === 'fulfilled', roster: Boolean(team.roster?.length), stats: Boolean(selected.getTeamStats), news: Boolean(selected.getTeamNews) } };
     return res.json({ ...overview, warnings: [...(past.status === 'rejected' ? ['Recent matches unavailable'] : []), ...(upcoming.status === 'rejected' ? ['Upcoming matches unavailable'] : [])] });
   } catch (error) { return next(error); }
 });
@@ -180,8 +191,14 @@ router.get("/teams/:id/roster", async (req, res, next) => {
   try {
     const team = await cached(`team-details:${req.params.id}`, ESPORTS_CACHE_TTL.teams, () => selected.getTeamDetails?.(req.params.id) ?? selected.getTeam(req.params.id).then((value) => value ? { ...value, roster: [] } : null));
     if (!team) return res.status(404).json({ error: "Team not found" });
-    return res.json(team.roster ?? []);
+    return res.json(withPhotos(team.roster ?? []));
   } catch (error) { return next(error); }
+});
+// A single player's photo, waiting for the lookup: the player page asks for it once.
+router.get("/players/photo", async (req, res, next) => {
+  const name = typeof req.query.name === "string" ? req.query.name.trim().slice(0, 40) : "";
+  if (!name) return res.status(400).json({ error: "Missing player name" });
+  try { const url = await playerPhoto(name); return res.json({ imageUrl: url ? proxied(url) : null, credit: url ? "Liquipedia" : null }); } catch (error) { return next(error); }
 });
 router.get("/teams/:id/stats", async (req, res, next) => {
   const selected = providerRequired(res); if (!selected) return;

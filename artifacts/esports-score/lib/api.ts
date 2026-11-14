@@ -1,19 +1,20 @@
+import type { MatchGame } from "@/lib/data";
 import { Image } from "expo-image";
 import { resolveEsportsAsset } from "@/lib/assetResolver";
 import type { Match, Team } from "@/lib/data";
 
 type ApiTeam = { id: string; name: string; acronym?: string; logoUrl?: string; country?: string; gameId: string };
-export type ApiPlayer = { id: string; name: string; fullName?: string; imageUrl?: string; country?: string; role?: string; status?: "player" | "coach" | "staff" };
+export type ApiPlayer = { id: string; name: string; fullName?: string; imageUrl?: string; imageCredit?: string; country?: string; role?: string; status?: "player" | "coach" | "staff" };
 export type ApiTeamDetails = ApiTeam & { website?: string; socials?: { platform: string; url: string }[]; roster?: ApiPlayer[] };
 export type TeamNewsArticle = { id: string; title: string; url: string; publishedAt: string; source: string; imageUrl?: string; summary?: string };
 export type TeamNewsResult = { articles: TeamNewsArticle[]; available: boolean; error?: string };
 export type ApiCompetition = { id: string; name: string; region?: string; serieName?: string; logoUrl?: string; gameId?: string };
-type ApiMatch = { id: string; gameId: string; competition: ApiCompetition; homeTeam: ApiTeam; awayTeam: ApiTeam; startTime: string | null; scheduledTime?: string | null; status: "scheduled" | "live" | "finished" | "cancelled" | "postponed"; bestOf?: 1 | 3 | 5; homeScore?: number; awayScore?: number; streams?: { url: string; language?: string; official?: boolean }[] };
+type ApiMatch = { id: string; gameId: string; competition: ApiCompetition; homeTeam: ApiTeam; awayTeam: ApiTeam; startTime: string | null; scheduledTime?: string | null; status: "scheduled" | "live" | "finished" | "cancelled" | "postponed"; bestOf?: 1 | 3 | 5; homeScore?: number; awayScore?: number; streams?: { url: string; language?: string; official?: boolean }[]; games?: MatchGame[] };
 type ApiMatchDetails = { match: ApiMatch; maps: { id: string; mapName?: string; mapNumber: number; homeScore?: number; awayScore?: number }[]; playerStats: unknown[]; economy: null; veto: null; headToHead: ApiMatch[]; recentMatches: { teamId: string; matches: ApiMatch[] }[]; capabilities: { maps: boolean; playerStats: boolean; economy: boolean; veto: boolean; headToHead: boolean; recentMatches: boolean } };
 type ApiStats = { maps: { id: string; mapName: string; mapNumber: number; homeScore?: number; awayScore?: number; status?: string }[]; playerStats: { playerId: string; playerName: string; teamId?: string; agent?: string; rating?: number; acs?: number; kills?: number; deaths?: number; assists?: number; kast?: number; adr?: number; headshotPercentage?: number; firstKills?: number; firstDeaths?: number }[]; economy?: { homeRoundsWon?: number; awayRoundsWon?: number; homePistolRoundsWon?: number; awayPistolRoundsWon?: number; homeAttackRoundsWon?: number; awayAttackRoundsWon?: number; homeDefenseRoundsWon?: number; awayDefenseRoundsWon?: number }; veto: { teamName: string; action: string; mapName: string }[]; headToHead: ApiMatch[]; recentMatches: { teamId: string; matches: ApiMatch[] }[] };
 type ApiStatsResult = { stats: ApiStats | null; capabilities: { deepStats: boolean; maps: boolean; playerStats: boolean; economy: boolean; veto: boolean; headToHead: boolean; recentMatches: boolean }; error?: string };
 export type MatchDetails = { match: Match; maps: { id: string; mapName?: string; mapNumber: number; homeScore?: number; awayScore?: number }[]; playerStats: unknown[]; economy: null; veto: { teamName: string; action: string; mapName: string }[] | null; headToHead: Match[]; recentMatches: { teamId: string; matches: Match[] }[]; capabilities: { maps: boolean; playerStats: boolean; economy: boolean; veto: boolean; headToHead: boolean; recentMatches: boolean }; stats?: ApiStats };
-export type ApiSearchResult = { type: "team" | "competition" | "game"; id: string; name: string; gameId?: string; logoUrl?: string; acronym?: string; countryName?: string; season?: string };
+export type ApiSearchResult = { type: "team" | "competition" | "game"; id: string; name: string; gameId?: string; logoUrl?: string; acronym?: string; country?: string; countryName?: string; season?: string };
 
 const baseUrl = process.env.EXPO_PUBLIC_API_BASE_URL ?? "";
 
@@ -86,6 +87,7 @@ export function toMatch(row: ApiMatch): Match {
     format,
     detail: status === "Live" ? "Ao vivo" : start ? new Date(start).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" }) : "Data não informada",
     streams: (row.streams ?? []).filter((stream) => stream.url.startsWith("https://")),
+    games: row.games,
   };
 }
 
@@ -200,6 +202,8 @@ export async function fetchTeamNews(id: string, limit = 5) { return request<Team
 export async function fetchTeamMatches(id: string, filter: "all" | "upcoming" | "finished", page = 1) {
   return request<TeamMatchesResult>(`/teams/${encodeURIComponent(id)}/matches?filter=${filter}&page=${page}&per_page=20`);
 }
+// A photo for a player the provider has none for (looked up on Liquipedia by the API).
+export async function fetchPlayerPhoto(name: string) { const result = await request<{ imageUrl: string | null; credit: string | null }>(`/players/photo?name=${encodeURIComponent(name)}`); return { ...result, imageUrl: absoluteLogo(result.imageUrl ?? undefined) }; }
 export async function fetchTeamRoster(id: string) { return (await request<ApiPlayer[]>(`/teams/${encodeURIComponent(id)}/roster`)).map(playerPhoto); }
 export async function fetchTeamStats(id: string) { return request<TeamStatsResult>(`/teams/${encodeURIComponent(id)}/stats`); }
 export function toApiTeam(value: ApiTeamDetails): Team { return toTeam(value); }

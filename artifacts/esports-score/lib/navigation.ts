@@ -17,6 +17,10 @@ export function openTeam(team: Team) {
   router.push(`/teams/${encodeURIComponent(team.id)}`);
 }
 
+export function openPlayer(player: { id: string; name: string; fullName?: string; country?: string; imageUrl?: string; imageCredit?: string; role?: string }, teamId: string) {
+  router.push({ pathname: "/players/[id]", params: { id: player.id, name: player.name, fullName: player.fullName ?? "", country: player.country ?? "", imageUrl: player.imageUrl ?? "", imageCredit: player.imageCredit ?? "", role: player.role ?? "", teamId } });
+}
+
 export function openMatch(id: string, match?: Match) {
   if (match) {
     queryClient.setQueryData(["match-preview", id], match);

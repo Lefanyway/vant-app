@@ -23,7 +23,7 @@ if (native) {
   });
 }
 
-async function ensurePermission() {
+export async function ensurePermission() {
   if (!native) return false;
   if (Platform.OS === "android") await Notifications.setNotificationChannelAsync("partidas", { name: "Partidas", importance: Notifications.AndroidImportance.HIGH });
   const current = await Notifications.getPermissionsAsync();

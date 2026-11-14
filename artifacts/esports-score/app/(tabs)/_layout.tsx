@@ -1,3 +1,9 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { router } from "expo-router";
+import { useEffect } from "react";
+import { useApp } from "@/context/AppContext";
+import { useAuth } from "@/context/AuthContext";
+import { onboardingKey } from "@/lib/onboarding";
 import { Feather } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import { BlurView } from "expo-blur";
@@ -8,7 +14,23 @@ import { useColors } from "@/hooks/useColors";
 
 const labels: Record<string, string> = { index: "Partidas", following: "Favoritos", insights: "Previsões", search: "Buscar" };
 const icons = { index: "clock", following: "star", insights: "bar-chart-2", search: "search" } as const;
+// New accounts with nothing followed see the onboarding once; people who already follow something skip it.
+function useFirstRun() {
+  const userId = useAuth().session?.user.id;
+  const { favoriteTeams, favoriteCompetitions = [], favoritesReady = true } = useApp();
+  useEffect(() => {
+    if (!userId || !favoritesReady) return;
+    const key = onboardingKey(userId);
+    AsyncStorage.getItem(key).then((seen) => {
+      if (seen) return;
+      if (favoriteTeams.length || favoriteCompetitions.length) void AsyncStorage.setItem(key, "1");
+      else router.replace("/onboarding");
+    }).catch(() => undefined);
+  }, [userId, favoritesReady]);
+}
+
 export default function TabLayout() {
+  useFirstRun();
   const colors = useColors();
   const insets = useSafeAreaInsets();
   return <Tabs screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: colors.background } }} tabBar={({ state, emitter, navigateToTab }) => <View style={[styles.container, { bottom: Math.max(insets.bottom, 12) }]}>

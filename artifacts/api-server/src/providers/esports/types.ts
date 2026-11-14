@@ -42,7 +42,10 @@ export type Match = {
   id: string; externalIds: ExternalId[]; gameId: GameId; competition: Competition;
   homeTeam: Team; awayTeam: Team; startTime: string | null; scheduledTime?: string | null; status: MatchStatus; bestOf?: 1 | 3 | 5;
   homeScore?: number; awayScore?: number; streams?: Stream[];
+  // Map by map, as far as the provider tells it: order, who won, when it started and how long it took.
+  games?: MatchGame[];
 };
+export type MatchGame = { number: number; status: 'scheduled' | 'live' | 'finished'; winnerId?: string; startTime?: string; minutes?: number };
 export type MatchDetails = {
   match: Match;
   maps: { id: string; mapName?: string; mapNumber: number; homeScore?: number; awayScore?: number }[];

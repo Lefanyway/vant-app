@@ -10,7 +10,7 @@ export type RawPlayer = { id: number; name?: string; first_name?: string; last_n
 export type RawTeam = { id: number; name: string; acronym?: string; image_url?: string; location?: string; players?: RawPlayer[]; website?: string; social?: { url?: string }; current_videogame?: RawGame; videogame?: RawGame };
 type RawLeague = { id: number; name: string; slug?: string; image_url?: string; videogame?: RawGame; series?: { full_name?: string; begin_at?: string | null }[] };
 type RawSerie = { full_name?: string; begin_at?: string | null; league?: RawLeague };
-export type RawMatch = { id: number; begin_at?: string | null; scheduled_at?: string | null; status?: string; number_of_games?: number; opponents?: { opponent?: RawTeam }[]; league?: RawLeague; serie?: { name?: string; full_name?: string }; tournament?: { name?: string }; videogame?: RawGame; results?: { score: number; team_id: number }[]; streams_list?: { raw_url?: string; language?: string; official?: boolean }[]; games?: { id: number; position?: number }[] };
+export type RawMatch = { id: number; begin_at?: string | null; scheduled_at?: string | null; status?: string; number_of_games?: number; opponents?: { opponent?: RawTeam }[]; league?: RawLeague; serie?: { name?: string; full_name?: string }; tournament?: { name?: string }; videogame?: RawGame; results?: { score: number; team_id: number }[]; streams_list?: { raw_url?: string; language?: string; official?: boolean }[]; games?: { id: number; position?: number; status?: string; winner?: { id?: number | null } | null; begin_at?: string | null; length?: number | null }[] };
 const games: Game[] = [{ id: 'valorant', name: 'VALORANT', shortName: 'VALORANT' }, { id: 'cs2', name: 'Counter-Strike 2', shortName: 'CS2' }, { id: 'lol', name: 'League of Legends', shortName: 'LoL' }];
 const slugs: Record<string, GameId> = { valorant: 'valorant', 'cs-go': 'cs2', 'league-of-legends': 'lol' };
 const providerSlug: Record<GameId, string> = { valorant: 'valorant', cs2: 'csgo', lol: 'lol' };
@@ -121,6 +121,10 @@ export class PandaScoreAdapter implements EsportsDataProvider {
       bestOf: [1, 3, 5].includes(row.number_of_games ?? 0) ? row.number_of_games as 1 | 3 | 5 : undefined,
       ...scores,
       streams: (row.streams_list ?? []).filter(stream => stream.raw_url?.startsWith('https://')).map(stream => ({ url: stream.raw_url!, language: stream.language, official: stream.official })),
+      games: (row.games ?? []).filter(item => Number.isFinite(item.position)).sort((a, b) => a.position! - b.position!).map(item => ({
+        number: item.position!, status: item.status === 'running' ? 'live' : item.status === 'finished' ? 'finished' : 'scheduled',
+        winnerId: item.winner?.id ? id(item.winner.id) : undefined, startTime: item.begin_at ?? undefined, minutes: item.length ? Math.round(item.length / 60) : undefined,
+      })),
     };
   }
   private async matchesForGame(game: GameId, range?: { start: string; end: string }, endpoint = 'matches') {

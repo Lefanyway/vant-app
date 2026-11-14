@@ -37,7 +37,11 @@ export type Match = {
   detail: string;
   competitionLogoUrl?: string;
   streams?: { url: string; language?: string; official?: boolean }[];
+  games?: MatchGame[];
 };
+
+// One map of a series: its number, state, winner (team id), start and length in minutes.
+export type MatchGame = { number: number; status: "scheduled" | "live" | "finished"; winnerId?: string; startTime?: string; minutes?: number };
 
 export function formatLabel(format?: Match["format"]) {
   return format;

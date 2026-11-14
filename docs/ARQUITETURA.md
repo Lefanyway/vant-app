@@ -200,7 +200,7 @@ sequenceDiagram
   TR->>N: insere um aviso por pessoa
   N-->>RT: evento de inserção
   RT-->>A: novo aviso
-  A-->>A: sino com contador; toca e abre a partida
+  A-->>A: sino com contador, toque abre a partida
 ```
 
 ### 4.5 Previsão de vitória

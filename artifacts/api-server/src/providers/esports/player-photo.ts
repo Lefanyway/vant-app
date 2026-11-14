@@ -35,7 +35,8 @@ async function lookup(name: string): Promise<string | null> {
   last = Date.now();
   const params = new URLSearchParams({ action: "query", titles: name, generator: "images", gimlimit: "50", prop: "imageinfo", iiprop: "url", iiurlwidth: "240", format: "json", redirects: "1" });
   const response = await fetch(`${API}?${params}`, { headers: { "User-Agent": USER_AGENT, "Accept-Encoding": "gzip" }, signal: AbortSignal.timeout(8_000) });
-  if (!response.ok) return null;
+  // A refusal (busy, rate limited) is not an answer: throw so the name is tried again later.
+  if (!response.ok) throw new Error(`Liquipedia ${response.status}`);
   const body = await response.json() as { query?: { pages?: Record<string, { title: string; imageinfo?: { thumburl?: string; url?: string }[] }> } };
   const files = Object.values(body.query?.pages ?? {}).map((page) => ({ title: page.title, url: page.imageinfo?.[0]?.thumburl ?? page.imageinfo?.[0]?.url }));
   return pickPhoto(name, files);
@@ -46,7 +47,10 @@ export function playerPhoto(name: string): Promise<string | null> {
   const key = name.trim().toLowerCase();
   if (!key) return Promise.resolve(null);
   if (found.has(key)) return Promise.resolve(found.get(key)!);
-  const next = queue.then(() => found.has(key) ? found.get(key)! : lookup(name).catch(() => null)).then((url) => { found.set(key, url); save(); return url; });
+  const next = queue.then(async () => {
+    if (found.has(key)) return found.get(key)!;
+    try { const url = await lookup(name); found.set(key, url); save(); return url; } catch { return null; }
+  });
   queue = next.catch(() => undefined);
   return next;
 }

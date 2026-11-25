@@ -10,6 +10,8 @@ Partidas, favoritos, palpites e previsões explicadas — em português do Brasi
 
 [O app](#o-app) · [Rodar localmente](#rodar-localmente) · [APK Android](#gerar-o-apk-android) · [Documentação](#documentação)
 
+[Projeto no Expo](https://expo.dev/accounts/lefanyway/projects/vant) · [Builds Android](https://expo.dev/accounts/lefanyway/projects/vant/builds?platform=android)
+
 </div>
 
 ## O app
@@ -117,14 +119,17 @@ A versão web fica disponível na porta 5000 por padrão. Para uma API hospedada
 
 ## Gerar o APK (Android)
 
-O perfil `preview` do EAS gera um APK instalável. Cadastre no ambiente `preview` as variáveis `EXPO_PUBLIC_API_BASE_URL`, `EXPO_PUBLIC_SUPABASE_URL` e `EXPO_PUBLIC_SUPABASE_KEY`.
+O perfil `preview` do EAS gera um APK instalável, sem depender do Expo Go. O projeto está vinculado à conta `lefanyway`.
+
+**Disponibilidade:** o APK ainda não foi publicado. Falta configurar a URL HTTPS pública da API no ambiente `preview`. Os links acima abrem o projeto e o histórico de builds, não um download do APK.
+
+Cadastre no ambiente `preview` as variáveis `EXPO_PUBLIC_API_BASE_URL`, `EXPO_PUBLIC_SUPABASE_URL` e `EXPO_PUBLIC_SUPABASE_KEY`.
 
 ```bash
-cd artifacts/esports-score
-npx eas-cli build -p android --profile preview
+pnpm run build:apk
 ```
 
-Ao terminar, o EAS fornece o link de download. Para acessar o app fora da rede de desenvolvimento, a API precisa estar disponível na internet.
+Ao terminar, o EAS fornece o link de instalação e download, disponível também no histórico de builds. Consulte o [guia do APK](docs/apk-android.md) para configurar o ambiente e publicar uma versão no GitHub.
 
 ## Testes
 
@@ -155,6 +160,7 @@ docs/                  Guias, arquitetura e capturas
 - [Arquitetura e fluxos](docs/ARQUITETURA.md)
 - [Banco e sincronização](docs/supabase.md)
 - [Abrir no celular](docs/abrir-no-celular.md)
+- [Gerar e instalar o APK Android](docs/apk-android.md)
 - [Relatório de qualidade](docs/RELATORIO-QUALIDADE.md)
 - [Roadmap](docs/ROADMAP.md)
 

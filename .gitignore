@@ -46,6 +46,9 @@ Thumbs.db
 __pycache__/
 
 # Local secrets
+*.jks
+*.keystore
+credentials.json
 .env
 .env.*
 !.env.example

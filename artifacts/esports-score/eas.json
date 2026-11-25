@@ -1,12 +1,18 @@
 {
   "cli": { "version": ">= 16.0.0", "appVersionSource": "local" },
   "build": {
+    "base": {
+      "node": "24.12.0",
+      "pnpm": "11.25.0"
+    },
     "preview": {
+      "extends": "base",
       "distribution": "internal",
       "android": { "buildType": "apk" },
       "environment": "preview"
     },
     "production": {
+      "extends": "base",
       "android": { "buildType": "app-bundle" },
       "environment": "production"
     }

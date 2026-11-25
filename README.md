@@ -1,19 +1,8 @@
-<div align="center">
+# VANT
 
-<img src="docs/images/readme-cover.svg" width="1040" alt="VANT — Valorant competitivo, fácil de acompanhar">
+Aplicativo para acompanhar o competitivo de Valorant: partidas, favoritos, palpites e previsões em português.
 
-<br>
-<br>
-
-<a href="https://github.com/Lefanyway/vant-app/releases/download/v1.0.0/VANT-1.0.0.apk">
-  <img src="docs/images/download-android.svg" width="280" height="54" alt="Baixar VANT para Android">
-</a>
-
-**v1.0.0** · APK de 117 MB · Sem Expo Go
-
-[Conheça o app](#o-app) &nbsp; · &nbsp; [Instalação](#instalar-no-android) &nbsp; · &nbsp; [Desenvolvimento](#rodar-localmente) &nbsp; · &nbsp; [Documentação](#documentação)
-
-</div>
+**[Baixar APK Android](https://github.com/Lefanyway/vant-app/releases/download/v1.0.0/VANT-1.0.0.apk)** · [Versão 1.0.0](https://github.com/Lefanyway/vant-app/releases/tag/v1.0.0)
 
 ## Instalar no Android
 

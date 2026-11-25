@@ -9,15 +9,15 @@ Baixe e abra o APK no celular para instalar.
 ## O app
 
 <table>
-<tr><th>Partidas</th><th>Previsões</th><th>Busca</th></tr>
+<tr><th>Onboarding</th><th>Partidas</th><th>Previsões</th></tr>
 <tr>
+<td><img src="docs/screenshots/introducao.png" width="240" alt="Onboarding do VANT com apresentação dos recursos do app"></td>
 <td><img src="docs/screenshots/partidas.jpg" width="240" alt="Tela de Partidas do VANT com agenda e placares"></td>
 <td><img src="docs/screenshots/previsoes.png" width="240" alt="Previsões e simulador de confrontos do VANT"></td>
-<td><img src="docs/screenshots/busca.png" width="240" alt="Busca de equipes e competições"></td>
 </tr>
 </table>
 
-Capturas da versão web em formato de celular. Partidas usa dados da API; as demais telas usam dados demonstrativos.
+Capturas da versão web em formato de celular. Partidas usa dados da API; Previsões usa dados demonstrativos.
 
 ## Recursos
 

@@ -28,6 +28,19 @@ Capturas da versão web em formato de celular. Partidas usa dados da API; as dem
 - **Busca:** encontre times, campeonatos e seus detalhes.
 - **Perfil:** nick, avatar e modo sem spoiler.
 
+## Como funciona
+
+```mermaid
+flowchart LR
+    P[PandaScore] --> API[API Express]
+    API <--> C[Cache em memória / Redis]
+    API --> DB[(Supabase / Postgres)]
+    APP[App Expo] --> API
+    APP <--> DB
+    DB --> ML[Modelo Python]
+    ML --> DB
+```
+
 ## As previsões
 
 O modelo combina Elo e regressão logística para estimar a chance de vitória de cada time. Considera força, forma recente, confrontos diretos, experiência, descanso e formato da série. O app mostra os fatores da previsão e permite simular confrontos.

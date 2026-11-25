@@ -1,18 +1,17 @@
 <div align="center">
 
-# VANT
+<img src="docs/images/readme-cover.svg" width="1040" alt="VANT — Valorant competitivo, fácil de acompanhar">
 
-**Valorant competitivo, fácil de acompanhar.**
+<br>
+<br>
 
-Partidas, favoritos, palpites e previsões explicadas — em português do Brasil.
+<a href="https://github.com/Lefanyway/vant-app/releases/download/v1.0.0/VANT-1.0.0.apk">
+  <img src="docs/images/download-android.svg" width="280" height="54" alt="Baixar VANT para Android">
+</a>
 
-**React Native · Expo · TypeScript · Supabase · Python**
+**v1.0.0** · APK de 117 MB · Sem Expo Go
 
-[O app](#o-app) · [Rodar localmente](#rodar-localmente) · [APK Android](#gerar-o-apk-android) · [Documentação](#documentação)
-
-**[Baixar APK Android — VANT 1.0.0](https://github.com/Lefanyway/vant-app/releases/download/v1.0.0/VANT-1.0.0.apk)**
-
-[Release e instalação](https://github.com/Lefanyway/vant-app/releases/tag/v1.0.0) · [Build no Expo/EAS](https://expo.dev/accounts/lefanyway/projects/vant/builds/f1a97397-c14b-461e-b3aa-39dd15093fdb)
+[Conheça o app](#o-app) &nbsp; · &nbsp; [Instalação](#instalar-no-android) &nbsp; · &nbsp; [Desenvolvimento](#rodar-localmente) &nbsp; · &nbsp; [Documentação](#documentação)
 
 </div>
 

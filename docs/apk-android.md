@@ -4,7 +4,7 @@ O aplicativo Android usa o pacote `com.lefanyway.vant`, versão `1.0.0`.
 
 - [Projeto no Expo](https://expo.dev/accounts/lefanyway/projects/vant)
 - [Builds Android e downloads disponíveis](https://expo.dev/accounts/lefanyway/projects/vant/builds?platform=android)
-- [Releases no GitHub](https://github.com/Lefanyway/vant_app/releases)
+- [Releases no GitHub](https://github.com/Lefanyway/vant-app/releases)
 
 ## Situação da primeira versão
 

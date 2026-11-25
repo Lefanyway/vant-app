@@ -76,8 +76,8 @@ O modelo combina **Elo e regressão logística**, considerando força, forma rec
 - Projeto Supabase configurado e token da PandaScore.
 
 ```bash
-git clone https://github.com/Lefanyway/vant_app.git
-cd vant_app
+git clone https://github.com/Lefanyway/vant-app.git
+cd vant-app
 pnpm install --frozen-lockfile
 ```
 

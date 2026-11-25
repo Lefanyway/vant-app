@@ -10,9 +10,17 @@ Partidas, favoritos, palpites e previsões explicadas — em português do Brasi
 
 [O app](#o-app) · [Rodar localmente](#rodar-localmente) · [APK Android](#gerar-o-apk-android) · [Documentação](#documentação)
 
-[Projeto no Expo](https://expo.dev/accounts/lefanyway/projects/vant) · [Builds Android](https://expo.dev/accounts/lefanyway/projects/vant/builds?platform=android)
+**[Baixar APK Android — VANT 1.0.0](https://github.com/Lefanyway/vant-app/releases/download/v1.0.0/VANT-1.0.0.apk)**
+
+[Release e instalação](https://github.com/Lefanyway/vant-app/releases/tag/v1.0.0) · [Build no Expo/EAS](https://expo.dev/accounts/lefanyway/projects/vant/builds/f1a97397-c14b-461e-b3aa-39dd15093fdb)
 
 </div>
+
+## Instalar no Android
+
+Baixe o APK pelo link acima, abra o arquivo no celular e autorize a instalação pelo navegador quando o Android solicitar. O app funciona sem Expo Go e sem o computador ligado. No plano gratuito do Render, o primeiro acesso após inatividade pode demorar.
+
+Versão `1.0.0`, pacote `com.lefanyway.vant`. APK gerado e assinado pelo EAS; tipos, bundle Android e API pública verificados. A instalação em aparelho físico ainda não foi verificada.
 
 ## O app
 
@@ -121,7 +129,7 @@ A versão web fica disponível na porta 5000 por padrão. Para uma API hospedada
 
 O perfil `preview` do EAS gera um APK instalável, sem depender do Expo Go. O projeto está vinculado à conta `lefanyway`.
 
-**Disponibilidade:** o APK ainda não foi publicado. Falta configurar a URL HTTPS pública da API no ambiente `preview`. Os links acima abrem o projeto e o histórico de builds, não um download do APK.
+**API publicada:** [VANT no Render](https://vant-api-j47z.onrender.com/api/healthz). O ambiente `preview` do EAS já está configurado com a API pública e o Supabase.
 
 Cadastre no ambiente `preview` as variáveis `EXPO_PUBLIC_API_BASE_URL`, `EXPO_PUBLIC_SUPABASE_URL` e `EXPO_PUBLIC_SUPABASE_KEY`.
 
@@ -161,6 +169,7 @@ docs/                  Guias, arquitetura e capturas
 - [Banco e sincronização](docs/supabase.md)
 - [Abrir no celular](docs/abrir-no-celular.md)
 - [Gerar e instalar o APK Android](docs/apk-android.md)
+- [API publicada no Render](docs/render.md)
 - [Relatório de qualidade](docs/RELATORIO-QUALIDADE.md)
 - [Roadmap](docs/ROADMAP.md)
 

@@ -85,5 +85,5 @@ Tudo continua no histórico do Git.
 - `app.json`: pacote Android `com.lefanyway.vant`, `versionCode` 1, ícone adaptativo.
 - `eas.json`: perfil `preview` gera `.apk`; perfil `production` gera `.aab` para a loja.
 - expo-doctor sem pendências (versões alinhadas ao SDK 58, sem módulos nativos duplicados).
-- **Falta, para funcionar fora de casa:** publicar a API na internet e cadastrar `EXPO_PUBLIC_API_BASE_URL`, `EXPO_PUBLIC_SUPABASE_URL` e `EXPO_PUBLIC_SUPABASE_KEY` no ambiente `preview` do EAS.
+- **Atualização em 24/11/2026:** API publicada no Render e as três variáveis públicas cadastradas no EAS `preview`. Health check, cache, partidas futuras e busca de equipes responderam HTTP 200. Consulte [o guia Android](apk-android.md).
 - **Marca:** o ícone ainda é o logo do Valorant (marca da Riot); estudos de um símbolo próprio estão em `docs/identidade`.

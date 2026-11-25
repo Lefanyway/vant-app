@@ -8,7 +8,15 @@ O aplicativo Android usa o pacote `com.lefanyway.vant`, versão `1.0.0`.
 
 ## Situação da primeira versão
 
-Projeto EAS vinculado. APK ainda não publicado: falta informar e configurar `EXPO_PUBLIC_API_BASE_URL` com o endereço HTTPS público da API Express. O endereço do Supabase não substitui essa API, que atende `/api/esports/*`.
+Projeto EAS vinculado e ambiente `preview` configurado. A API está publicada em `https://vant-api-j47z.onrender.com`; use esse endereço em `EXPO_PUBLIC_API_BASE_URL`. Ela atende as rotas `/api/*`. Consulte a [configuração do Render](render.md).
+
+O build Android `f1a97397-c14b-461e-b3aa-39dd15093fdb` terminou com status `FINISHED`. O APK assinado está na [release 1.0.0](https://github.com/Lefanyway/vant-app/releases/tag/v1.0.0):
+
+- [Baixar VANT-1.0.0.apk](https://github.com/Lefanyway/vant-app/releases/download/v1.0.0/VANT-1.0.0.apk).
+- [Checksum SHA-256](https://github.com/Lefanyway/vant-app/releases/download/v1.0.0/VANT-1.0.0.sha256).
+- [Build concluído no EAS](https://expo.dev/accounts/lefanyway/projects/vant/builds/f1a97397-c14b-461e-b3aa-39dd15093fdb).
+
+Baixe e abra o APK no Android. Quando solicitado, permita a instalação pelo navegador. Não é necessário Expo Go. Tipos, bundle e endpoints públicos foram verificados; a instalação em aparelho físico ainda não foi verificada.
 
 ## Configurar
 

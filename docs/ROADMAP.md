@@ -4,7 +4,7 @@ Ideias avaliadas e guardadas para depois. Ordem sugerida dentro de cada grupo.
 
 ## Must have
 
-1. **API publicada na internet.** Hoje ela roda no computador de quem desenvolve; sem isso o app só funciona na mesma rede Wi-Fi.
+1. **API publicada na internet — concluído.** Hospedada no Render, com HTTPS, Supabase e cache Redis. Consulte [a configuração](render.md).
 2. **Push com o app fechado.** Exige um build de desenvolvimento do EAS (gratuito); o banco já gera os eventos de início e fim de partida.
 
 ## Nice to have (inspirado em apps de placar como o Sofascore)

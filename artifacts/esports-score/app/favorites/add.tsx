@@ -1,6 +1,7 @@
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { Pop } from "@/components/Motion";
-import { Feather, Ionicons } from "@expo/vector-icons";
+import Feather from "@expo/vector-icons/Feather";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { keepPreviousData, useInfiniteQuery } from "@tanstack/react-query";
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";

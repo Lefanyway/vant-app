@@ -1,6 +1,6 @@
 import { buzz, Toggle } from "@/components/Motion";
 import { useSpoilers } from "@/context/SpoilerContext";
-import { Feather } from "@expo/vector-icons";
+import Feather from "@expo/vector-icons/Feather";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";

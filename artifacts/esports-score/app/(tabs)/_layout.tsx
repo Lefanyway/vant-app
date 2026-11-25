@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useApp } from "@/context/AppContext";
 import { useAuth } from "@/context/AuthContext";
 import { onboardingKey } from "@/lib/onboarding";
-import { Feather } from "@expo/vector-icons";
+import Feather from "@expo/vector-icons/Feather";
 import { Tabs } from "expo-router";
 import { BlurView } from "expo-blur";
 import { Platform, Pressable, StyleSheet, Text, View } from "react-native";

@@ -1,4 +1,4 @@
-import type { Feather } from "@expo/vector-icons";
+import type Feather from "@expo/vector-icons/Feather";
 import type { ImageSourcePropType } from "react-native";
 
 // Every avatar a fan can pick, saved in profiles.avatar by its id, in rows like a streaming service's icon picker.

@@ -2,169 +2,32 @@
 
 Aplicativo para acompanhar o competitivo de Valorant: partidas, favoritos, palpites e previsões em português.
 
-**[Baixar APK Android](https://github.com/Lefanyway/vant-app/releases/download/v1.0.0/VANT-1.0.0.apk)** · [Versão 1.0.0](https://github.com/Lefanyway/vant-app/releases/tag/v1.0.0)
+**[Baixar APK Android](https://github.com/Lefanyway/vant-app/releases/download/v1.0.0/VANT-1.0.0.apk)**
 
-## Instalar no Android
-
-Baixe o APK pelo link acima, abra o arquivo no celular e autorize a instalação pelo navegador quando o Android solicitar. O app funciona sem Expo Go e sem o computador ligado. No plano gratuito do Render, o primeiro acesso após inatividade pode demorar.
-
-Versão `1.0.0`, pacote `com.lefanyway.vant`. APK gerado e assinado pelo EAS; tipos, bundle Android e API pública verificados. A instalação em aparelho físico ainda não foi verificada.
+Baixe e abra o APK no celular para instalar.
 
 ## O app
 
-O VANT reúne o cenário competitivo de Valorant em um app mobile. Acompanhe seus times, explore campeonatos e compare sua leitura de um confronto com as probabilidades do modelo.
-
 <table>
-<tr><th>Primeiros passos</th><th>Previsões</th><th>Busca</th></tr>
+<tr><th>Partidas</th><th>Previsões</th><th>Busca</th></tr>
 <tr>
-<td><img src="docs/screenshots/introducao.png" width="240" alt="Introdução do VANT e seus principais recursos"></td>
+<td><img src="docs/screenshots/partidas.jpg" width="240" alt="Tela de Partidas do VANT com agenda e placares"></td>
 <td><img src="docs/screenshots/previsoes.png" width="240" alt="Previsões e simulador de confrontos do VANT"></td>
-<td><img src="docs/screenshots/busca.png" width="240" alt="Busca de equipes e competições com filtros"></td>
+<td><img src="docs/screenshots/busca.png" width="240" alt="Busca de equipes e competições"></td>
 </tr>
 </table>
 
-Capturas da versão web em viewport de celular, com dados demonstrativos. Resultados e métricas variam conforme a atualização das fontes.
+Capturas da versão web em formato de celular. Partidas usa dados da API; as demais telas usam dados demonstrativos.
 
 ## Recursos
 
-- **Partidas** — agenda, placares e resultados por dia, com filtros e destaque para o cenário brasileiro.
-- **Previsões** — probabilidades de vitória, explicação dos fatores, simulador de confrontos e ranking Elo.
-- **Palpites** — escolha do placar da série, pontos, sequência de acertos e liga semanal.
-- **Favoritos** — equipes e competições seguidas, com configuração de avisos.
-- **Buscar** — pesquisa por nome ou sigla e acesso aos detalhes dos times e campeonatos.
-- **Perfil** — nick, avatar e modo sem spoiler.
+- **Partidas:** agenda, placares e resultados, com filtros por dia e destaque para o Brasil.
+- **Previsões:** chances de vitória, explicação dos fatores, simulador e ranking Elo.
+- **Palpites:** escolha do placar, pontuação e liga semanal.
+- **Favoritos:** acompanhe equipes e competições.
+- **Busca:** encontre times, campeonatos e seus detalhes.
+- **Perfil:** nick, avatar e modo sem spoiler.
 
-## Como funciona
+## As previsões
 
-```mermaid
-flowchart LR
-    P[PandaScore] --> API[API Express]
-    API <--> C[Cache em memória / Redis]
-    API --> DB[(Supabase / Postgres)]
-    APP[App Expo] --> API
-    APP <--> DB
-    DB --> ML[Modelo Python]
-    ML --> DB
-```
-
-O app consulta a API para os dados de esports e o Supabase para autenticação, perfil, favoritos e previsões. O servidor mantém o token da PandaScore e usa cache para reduzir consultas repetidas.
-
-O modelo combina **Elo e regressão logística**, considerando força, forma recente, confrontos diretos, experiência, descanso e formato da série. O backtest usa as informações disponíveis antes de cada partida. As métricas e os motivos das previsões aparecem no próprio app.
-
-## Tecnologias
-
-| Camada | Ferramentas |
-| --- | --- |
-| App | React Native, Expo Router, TypeScript, TanStack Query, Reanimated |
-| API | Node.js, Express, TypeScript, esbuild |
-| Dados e contas | Supabase, PostgreSQL, Row Level Security |
-| Cache | Memória do servidor, Redis opcional, AsyncStorage |
-| Modelo | Python, NumPy, scikit-learn |
-| Testes | Jest, Testing Library, Node Test Runner, unittest |
-| Automação | GitHub Actions, Expo EAS |
-
-## Rodar localmente
-
-### Pré-requisitos
-
-- Node.js 24 e pnpm 11.
-- Expo Go no celular e computador na mesma rede Wi-Fi.
-- Projeto Supabase configurado e token da PandaScore.
-
-```bash
-git clone https://github.com/Lefanyway/vant-app.git
-cd vant-app
-pnpm install --frozen-lockfile
-```
-
-### Configurar o ambiente
-
-Crie `artifacts/esports-score/.env` com os dados públicos do projeto.
-
-```dotenv
-EXPO_PUBLIC_SUPABASE_URL=https://SEU_PROJETO.supabase.co
-EXPO_PUBLIC_SUPABASE_KEY=SUA_CHAVE_PUBLICAVEL
-```
-
-Crie `artifacts/api-server/.env` para a API.
-
-```dotenv
-PANDASCORE_API_TOKEN=SEU_TOKEN
-SUPABASE_URL=https://SEU_PROJETO.supabase.co
-SUPABASE_PUBLISHABLE_KEY=SUA_CHAVE_PUBLICAVEL
-```
-
-Aplique as migrações de `supabase/migrations`. A sincronização e o treino exigem também a chave de ingestão. As credenciais privadas ficam no servidor. Consulte a configuração completa no [guia do Supabase](docs/supabase.md).
-
-### Abrir no celular
-
-```bash
-pnpm run dev:phone
-```
-
-O comando inicia a API e o Expo, configura o IP da rede local e mostra o QR Code para o Expo Go. No Windows, também é possível executar `ABRIR-VANT.cmd`. O [guia para abrir no celular](docs/abrir-no-celular.md) detalha o login e o diagnóstico de conexão.
-
-### Versão web
-
-```bash
-pnpm run build:web
-pnpm run start:web
-```
-
-A versão web fica disponível na porta 5000 por padrão. Para uma API hospedada separadamente, configure `EXPO_PUBLIC_API_BASE_URL` com seu endereço público antes de gerar o app.
-
-## Gerar o APK (Android)
-
-O perfil `preview` do EAS gera um APK instalável, sem depender do Expo Go. O projeto está vinculado à conta `lefanyway`.
-
-**API publicada:** [VANT no Render](https://vant-api-j47z.onrender.com/api/healthz). O ambiente `preview` do EAS já está configurado com a API pública e o Supabase.
-
-Cadastre no ambiente `preview` as variáveis `EXPO_PUBLIC_API_BASE_URL`, `EXPO_PUBLIC_SUPABASE_URL` e `EXPO_PUBLIC_SUPABASE_KEY`.
-
-```bash
-pnpm run build:apk
-```
-
-Ao terminar, o EAS fornece o link de instalação e download, disponível também no histórico de builds. Consulte o [guia do APK](docs/apk-android.md) para configurar o ambiente e publicar uma versão no GitHub.
-
-## Testes
-
-```bash
-pnpm run typecheck
-pnpm test
-python -m pip install -r ml/requirements.txt
-python -m unittest discover -s ml -p "test_train.py"
-```
-
-O [relatório de qualidade](docs/RELATORIO-QUALIDADE.md) registra a cobertura da auditoria e suas limitações.
-
-## Estrutura
-
-```text
-artifacts/
-  esports-score/       App Expo e telas
-  api-server/          API de esports e cache
-ml/                    Treino e avaliação do modelo
-supabase/migrations/   Banco de dados e políticas de acesso
-services/              Serviços auxiliares
-scripts/               Desenvolvimento e build
-docs/                  Guias, arquitetura e capturas
-```
-
-## Documentação
-
-- [Arquitetura e fluxos](docs/ARQUITETURA.md)
-- [Banco e sincronização](docs/supabase.md)
-- [Abrir no celular](docs/abrir-no-celular.md)
-- [Gerar e instalar o APK Android](docs/apk-android.md)
-- [API publicada no Render](docs/render.md)
-- [Relatório de qualidade](docs/RELATORIO-QUALIDADE.md)
-- [Roadmap](docs/ROADMAP.md)
-
-## Sobre o projeto
-
-Desenvolvido por **Lefanyway** como projeto acadêmico, sem fins comerciais. A disponibilidade dos detalhes de partidas depende da cobertura e do plano dos provedores.
-
-## Aviso legal
-
-VANT não é endossado pela Riot Games e não reflete as opiniões da Riot Games nem de ninguém oficialmente envolvido na produção ou gestão das propriedades da Riot Games. Riot Games, VALORANT e todas as propriedades associadas são marcas comerciais ou marcas registradas da Riot Games, Inc. Dados de partidas fornecidos pela PandaScore. Fotos de jogadores: Liquipedia (CC BY-SA 3.0).
+O modelo combina Elo e regressão logística para estimar a chance de vitória de cada time. Considera força, forma recente, confrontos diretos, experiência, descanso e formato da série. O app mostra os fatores da previsão e permite simular confrontos.

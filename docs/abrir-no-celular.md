@@ -15,7 +15,7 @@ node .\node_modules\expo\bin\cli whoami
 
 Siga as instrucoes do login. O comando `whoami` confirma a conta conectada.
 Normalmente o login fica salvo. Depois, pare o Expo anterior com Ctrl+C,
-abra `ABRIR-VANT.cmd` e leia o novo QR no celular.
+execute `pnpm run dev:phone` e leia o novo QR no celular.
 
 Referencia: https://docs.expo.dev/get-started/start-developing/
 
@@ -27,10 +27,10 @@ causar essa mensagem. Um servidor que ja estava aberto precisa ser reiniciado.
 ## Todo dia
 
 1. Ligue o computador e conecte computador e celular ao mesmo Wi-Fi.
-2. Abra `ABRIR-VANT.cmd` na raiz do repositorio, ou use PowerShell:
+2. Na raiz do repositório, execute:
 
 ```powershell
-npm run dev:phone
+pnpm run dev:phone
 ```
 
 3. Deixe o terminal aberto. O comando detecta o IP, reutiliza a API se estiver
@@ -60,7 +60,7 @@ reutiliza uma API existente e nao muda as credenciais dela.
 ## Diagnostico sem adivinhar
 
 ```powershell
-npm run check:phone
+pnpm run check:phone
 ```
 
 O script imprime o endereco da API. Abra o endereco terminado em
@@ -81,13 +81,13 @@ mas o script detecta o IP novamente em cada execucao.
 
 ```powershell
 $env:VANT_LAN_IP = 'IP_DO_WIFI_DO_PC'
-npm run dev:phone
+pnpm run dev:phone
 ```
 
 - Expo nao inicia: leia o erro do terminal. Nao e necessario rodar novamente
   `pnpm install` salvo quando as dependencias mudarem ou estiverem ausentes.
-  Se precisar limpar o cache uma vez: `npm run dev:phone -- --clear`.
-- Expo Go precisa ser compativel com o SDK do projeto. Este checkout usa Expo 54;
+  Se precisar limpar o cache uma vez: `pnpm run dev:phone -- --clear`.
+- Expo Go precisa ser compativel com o SDK do projeto. Este checkout usa Expo 58;
   se o aplicativo informar SDK incompatível, use uma development build compativel
   ou uma migracao de SDK validada, em vez de tratar isso como timeout de rede.
 

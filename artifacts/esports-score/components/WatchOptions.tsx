@@ -1,4 +1,4 @@
-import { Feather } from "@expo/vector-icons";
+import Feather from "@expo/vector-icons/Feather";
 import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
 import type { Match } from "@/lib/data";
 import { useColors } from "@/hooks/useColors";

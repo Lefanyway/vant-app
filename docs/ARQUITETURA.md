@@ -378,7 +378,7 @@ flowchart LR
 
 | Alvo | Como | Observação |
 |---|---|---|
-| Celular em desenvolvimento | `pnpm run dev:phone` (ou `ABRIR-VANT.cmd`) | Sobe a API (5000) e o Expo (8081) com o IP do Wi-Fi |
+| Celular em desenvolvimento | `pnpm run dev:phone` | Sobe a API (5000) e o Expo (8081) com o IP do Wi-Fi |
 | Web | `pnpm run build:web` e `pnpm run start:web` | A API serve o app web exportado |
 | APK Android | `npx eas-cli build -p android --profile preview` em `artifacts/esports-score` | Build na nuvem da Expo; variáveis no ambiente `preview` do EAS |
 | Modelo | `pnpm run ml:train` | Também roda sozinho pela API e pelo GitHub Actions |

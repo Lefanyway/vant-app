@@ -3,7 +3,7 @@ import { useApp } from "@/context/AppContext";
 import { useSpoilers } from "@/context/SpoilerContext";
 import { MatchTimeline } from "@/components/MatchTimeline";
 import { ResolvedLogo } from "@/components/ResolvedLogo";
-import { Feather } from "@expo/vector-icons";
+import Feather from "@expo/vector-icons/Feather";
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";

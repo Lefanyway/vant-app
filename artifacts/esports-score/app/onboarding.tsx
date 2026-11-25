@@ -1,6 +1,7 @@
 import { Appear, pressed } from "@/components/Motion";
 import { Avatar, AvatarPicker } from "@/components/Avatar";
-import { Feather, Ionicons } from "@expo/vector-icons";
+import Feather from "@expo/vector-icons/Feather";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";

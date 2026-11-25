@@ -1,6 +1,6 @@
 import { Appear } from "@/components/Motion";
-import { Ionicons } from "@expo/vector-icons";
-import { Feather } from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import Feather from "@expo/vector-icons/Feather";
 import { useState } from "react";
 import { AccessibilityInfo, LayoutAnimation, Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { MatchCard } from "@/components/MatchCard";

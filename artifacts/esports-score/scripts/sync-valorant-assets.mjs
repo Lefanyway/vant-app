@@ -72,5 +72,6 @@ for (const competition of competitions) {
 }
 await writeFile(path.join(root, 'lib/esports-assets.json'), JSON.stringify(manifest, null, 2) + '\n');
 await writeFile(path.join(root, 'lib/generatedAssetRegistry.ts'), `const generatedAssetRegistry: Record<string, number> = {\n${[...registry].map(([key, value]) => `  ${JSON.stringify(key)}: require(${JSON.stringify(value)}),`).join('\n')}\n};\nexport default generatedAssetRegistry;\n`);
-await writeFile(path.join(root, 'data/valorant-asset-report.json'), JSON.stringify(report, null, 2) + '\n');
+await mkdir(path.join(root, '.expo'), { recursive: true });
+await writeFile(path.join(root, '.expo/valorant-asset-report.json'), JSON.stringify(report, null, 2) + '\n');
 console.log(JSON.stringify({ official: report.official.length, provider: report.provider.length, failed: report.failed.length, missing: report.missing.length }));
